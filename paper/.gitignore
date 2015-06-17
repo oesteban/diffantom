@@ -1,0 +1,11 @@
+*.acn
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.ist
+*.out
+main.pdf
+*.synctex.gz
+
