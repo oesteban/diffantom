@@ -1,0 +1,181 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is just an example/guide for you to refer to when submitting manuscripts to Frontiers, it is not mandatory to use Frontiers .cls files nor frontiers.tex  %
+% This will only generate the Manuscript, the final article will be typeset by Frontiers after acceptance.                                                 %
+%                                                                                                                                                         %
+% When submitting your files, remember to upload this *tex file, the pdf generated with it, the *bib file (if bibliography is not within the *tex) and all the figures.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Version 3.1 Generated 2015/22/05 %%%
+%%% You will need to have the following packages installed: datetime, fmtcount, etoolbox, fcprefix, which are normally inlcuded in WinEdt. %%%
+%%% In http://www.ctan.org/ you can find the packages and how to install them, if necessary. %%%
+
+\documentclass[english]{frontiers/frontiersSCNS} % for Science, Engineering and Humanities and Social Sciences articles
+%\documentclass{frontiersHLTH} % for Health articles
+%\documentclass{frontiersFPHY} % for Physics and Applied Mathematics and Statistics articles
+
+%\setcitestyle{square}
+\usepackage{url,lineno,microtype}
+\usepackage[colorlinks=true,linkcolor=black, citecolor=black!80, urlcolor=black!80]{hyperref}
+\usepackage{doi}
+\usepackage[onehalfspacing]{setspace}
+\usepackage[toc,nomain,acronym,shortcuts,translate=false]{glossaries}
+
+\def\keyFont{\fontsize{7}{9}\helveticabold }
+\def\firstAuthorLast{Esteban {et~al.}} %use et al only if is more than 1 author
+\def\Authors{Oscar Esteban\,$^{1,2,*}$, Emmanuel Caruyer\,$^{3}$, Alessandro Daducci\,$^{4}$, Meritxell Bach-Cuadra\,$^{4,5}$,%
+M.-Jes\'us Ledesma-Carbayo\,$^{1,2}$ and Andres Santos\,$^{1,2}$}
+
+\def\Address{%
+$^{1}$Biomedical Image Technologies (BIT), ETSI Telecomunicaci\'on, Universidad Polit\'ecnica de Madrid, Madrid, Spain \\
+$^{2}$Centro de Investigaci\'on Biom\'edica en Red en Bioingenier\'ia, Biomateriales y Nanomedicina (CIBER-BBN), Spain \\
+$^{3}$CNRS, IRISA (UMR 6074), VisAGeS research group, Rennes, France \\
+$^{4}$Signal Processing Laboratory (LTS5), \'Ecole Polytechnique F\'ed\'erale de Lausanne (EPFL), Lausanne, Switzerland \\
+${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University of Lausanne (UNIL), Lausanne, Switzerland %
+}
+% The Corresponding Author should be marked with an asterisk
+% Provide the exact contact address (this time including street name and city zip code) and email of the corresponding author
+\def\corrAuthor{Oscar Esteban}
+\def\corrAddress{Biomedical Image Technologies (BIT), ETSI Telecomunicaci\'on, Av. Complutense 30, C203, E28040 Madrid, Spain}
+\def\corrEmail{phd@oscaresteban.es}
+
+\input{abbreviations.tex}
+\begin{document}
+
+\onecolumn
+\firstpage{1}
+
+\title[Diffantom]{Diffantom: a software layer to build digital phantoms of whole-brain diffusion MRI}
+
+\author[\firstAuthorLast ]{\Authors} %This field will be automatically populated
+\address{} %This field will be automatically populated
+\correspondance{} %This field will be automatically populated
+
+\extraAuth{}% If there are more than 1 corresponding author, comment this line and uncomment the next one.
+%\extraAuth{corresponding Author2 \\ Laboratory X2, Institute X2, Department X2, Organization X2, Street X2, City X2 , State XX2 (only USA, Canada and Australia), Zip Code2, X2 Country X2, email2@uni2.edu}
+
+
+\maketitle
+
+\linenumbers
+\section{Introduction}
+The assessment of tractography from \gls*{dmri} data and subsequent analyses is challenging due to
+  the lack of a gold standard.
+Large efforts have been devoted to the development of physical phantoms
+  \citep{lin_validation_2001,campbell_flowbased_2005,perrin_validation_2005,fieremans_simulation_2008,tournier_resolving_2008}.
+\cite{cote_tractometer_2013} conducted a thorough review of tractography methodologies using the
+  so-called \emph{FiberCup} phantom \citep{poupon_new_2008,fillard_quantitative_2011}.
+These phantoms are appropriate to evaluate the resolution of fiber crossings and accuracy of
+  direction-independent scalar parameters in very simplistic geometries.
+Since the complexity of whole-brain tractography is unaccountable with current materials and proposed
+  methodologies to build physical phantoms, digital simulations are increasingly popular.
+Early digital phantoms started with simulation of simple geometries as well
+  \citep{basser_in_2000,goessl_fiber_2002,tournier_limitations_2002,leemans_mathematical_2005}
+  to evaluate resolution of fiber crossings.
+These tools generally implemented the multi-tensor model \citep{alexander_analysis_2001,tuch_high_2002}
+  to simulate fibers crossing, fanning, kissing, etc.
+\cite{close_software_2009} presented the \emph{Numerical Fibre Generator}, a software to simulate
+  spherical shapes filled with digital fiber-tracts.
+\cite{caruyer_phantomas_2014} proposed \emph{Phantomas} to simulate any kind of analytic geometry
+  inside a sphere.
+\emph{Phantomas} models diffusion by a restricted and a hindered compartment, similar to
+  \citep{assaf_composite_2005}.
+\cite{wilkins_fiber_2014} proposed a whole-brain simulated phantom derived from voxel-wise orientation
+  of fibers averaged from real \gls*{dmri} scans and the multi-tensor model with a compartment of
+  isotropic-diffusion.
+Recently, \cite{neher_fiberfox_2014} proposed \emph{FiberFox}, a visualization software to develop
+  complex geometries and their analytical description.
+Once the geometries are obtained, the software generates the corresponding \gls*{dmri} signal with a
+  methodology very close to that implemented in \emph{Phantomas}.
+
+In this paper we present \emph{Diffantom}, a software layer to generate diffusion phantoms at whole-brain
+  scale and derived from real \gls*{dmri} datasets.
+Particularly, we propose the \gls*{hcp} \citep{essen_human_2012} as the source of real data.
+Finally, an example dataset is openly released along with all the necessary requirements and instructions
+  to generate custom phantoms.
+
+
+\section{Data description}
+
+\noindent\textbf{\textit{Data Generation\textcolon}}
+The methods to generate the data in this paper are inspired by the work of \cite{wilkins_fiber_2014} and
+  described in \autoref{fig:figure1}.
+\emph{Diffantom} observes two major improvements with respect to \citep{wilkins_fiber_2014}.
+First, since we use a dataset from the \gls*{hcp} as input, data are corrected for the most relevant distortions.
+\cite{wilkins_fiber_2014} explicitly state that their original data did not subjected to certain distortion
+  corrections, and thus, generated data are affected correspondingly.
+Second improvement is methodological, as we use a more complete signal model to generate the phantom thanks
+  to \emph{phantomas} \citep{caruyer_phantomas_2014}.
+
+
+\noindent\textbf{\textit{Interpretation and use\textcolon}}
+In order to release a reproducible dataset, along with an usable software to create custom data,
+  we also distribute the software tools summarized in \autoref{fig:figure1}.
+
+\section{Discussion and conclusion}
+
+\noindent\textbf{\textit{Discussion\textcolon}}\label{sec:discussion} %
+Whole-brain, realistic \gls*{dmri} phantoms are necessary in current development of connectomics.
+The \emph{diffantom} is a derivative work from \citep{wilkins_fiber_2014} in terms of methodology for
+  simulation with two major improvements: the correctness of the \emph{minimally preprocessed} data
+  \citep{glasser_minimal_2013} released within the \gls*{hcp}, and a more realistic diffusion
+  model.
+A possible competitor to \emph{diffantom} is the ground-truth data generated by the organizers of the
+  Tractography Challenge held in the ISMRM 2015\footnote{\url{http://www.tractometer.org/ismrm_2015_challenge/}}.
+Similarly to \emph{diffantom}, one \gls*{hcp} dataset is used as source of structural information.
+However, in this case 25 fiber bundles were manually segmented to obtain a summary tractogram.
+Then, making use of \emph{FiberFox}, the segmentation of each bundle is mapped to an analytical description
+  which is feeded into \emph{phantomas}.
+While this phantom is designed for the bundle-wise evaluation of tractography (with scores such as geometrical coverage,
+  valid connections, invalid connections, missed connections, etc. \citep{cote_tractometer_2013}),
+  \emph{diffantom} is intended for the connectome-wise evaluation of results, yielding tractography with
+  a large number of bundles.
+Therefore, \emph{diffantom} is complementary as the hypotheses that can be investigated are different and
+  it does not require costly manual segmentation of bundles, highly demanding in terms of physiology expertise
+  and operation time.
+
+\noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
+\emph{Diffantom} is a software layer to be applied on \acrfull*{hcp} datasets, that is openly and freely distributed
+  along with an example dataset.
+
+
+\section*{Data Sharing}
+
+
+\section*{Disclosure/Conflict-of-Interest Statement}
+
+The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
+
+\section*{Author Contributions}
+All the authors contributed to this study.
+OE designed the data generation procedure, implemented the processing pipelines and generated the example dataset.
+EC implemented \emph{phantomas} \citep{caruyer_phantomas_2014}, helped integrate the project with the simulation routines.
+OE, EC, AD thoroughtly discussed and framed the aptness of the data in the community.
+AD, MBC, MJLC, and AS interpreted the resulting datasets.
+MBC, MJLC, and AS advised on all aspects of the study.
+
+
+\section*{Acknowledgments}
+\textit{Funding\textcolon}
+This study was supported by the Spanish Ministry of Science and Innovation
+  (projects TEC-2013-48251-C2-2-R and INNPACTO XIORT), Comunidad de Madrid (TOPUS) and
+  European Regional Development Funds, the Center for Biomedical Imaging
+  (CIBM) of the Geneva and Lausanne Universities and the EPFL, as well as the
+  Leenaards and Louis Jeantet Foundations.
+
+
+\bibliographystyle{frontiers/frontiersinSCNS_ENG_HUMS}
+%\bibliographystyle{frontiersinHLTH&FPHY} % for Health and Physics articles
+\bibliography{Remote}
+
+%%% Upload the *bib file along with the *tex file and PDF on submission if the bibliography is not in the main *tex file
+
+\section*{Figures}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\linewidth]{figures/figure01}
+\end{center}
+\textbf{\refstepcounter{figure}\label{fig:figure1} Figure \arabic{figure}.}{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures }
+\end{figure}
+
+\end{document}
