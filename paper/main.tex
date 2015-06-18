@@ -109,7 +109,7 @@ Second improvement is methodological, as we use a more complete signal model to 
 
 \noindent\textbf{\textit{Interpretation and use\textcolon}}
 In order to release a reproducible dataset, along with an usable software to create custom data,
-  we also distribute the software tools summarized in \autoref{fig:figure1}.
+  we also distribute the software instrumentation presented in \autoref{fig:figure1}.
 
 \section{Discussion and conclusion}
 
@@ -169,13 +169,34 @@ This study was supported by the Spanish Ministry of Science and Innovation
 
 %%% Upload the *bib file along with the *tex file and PDF on submission if the bibliography is not in the main *tex file
 
+\glsresetall
+
 \section*{Figures}
 
 \begin{figure}[h!]
 \begin{center}
 \includegraphics[width=\linewidth]{figures/figure01}
 \end{center}
-\textbf{\refstepcounter{figure}\label{fig:figure1} Figure \arabic{figure}.}{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures }
+\textbf{\refstepcounter{figure}\label{fig:figure1} Figure \arabic{figure}. }%
+{\emph{Diffantom} is a software layer wrapping the \acrfull{hcp} datasets to generate whole-brain diffusion \gls*{dmri} data.
+First, the tissue fraction maps $\{T_1, T_2, T_3\}$ are computed using FSL FAST \citep{zhang_segmentation_2001}.
+Second, the fiber orientation maps $\{V_1, V_2, V_3\}$ and corresponding volume fraction maps $\{F_1, F_2, F_3\}$ are
+  obtained using the Multi-Shell ball-and-stick model of BEDPOSTX \citep{jbabdi_modelbased_2012}.
+The third step takes the fiber orientations $\{V_1, V_2, V_3\}$ and their weights $\{F_1, F_2, F_3\}$ to compute the
+  corresponding \glspl{fod} using spherical convolution of the single fiber response with each fiber orientation at
+  each voxel.
+The resulting \glspl{fod} map is then combined with three isotropic compartments corresponding to $\{T_1, T_2, T'_3\}$
+  before generating the signal using \emph{phantomas} \citep{caruyer_phantomas_2014}.
+The fraction map $T'_3 = T_3 - \sum F_i$ is the remaining isotropic fraction across the \gls*{wm} tissue map.
+Finally, data can be used to compute the whole-brain tractography, for instance.}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=\linewidth]{figures/figure02}
+\end{center}
+\textbf{\refstepcounter{figure}\label{fig:figure2} Figure \arabic{figure}. }%
+{Fig 2 caption}
 \end{figure}
 
 \end{document}
