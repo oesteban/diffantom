@@ -57,7 +57,7 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 \maketitle
 
 \linenumbers
-\section{Introduction}
+\section*{Introduction}
 The assessment of tractography from \gls*{dmri} data and subsequent analyses is challenging due to
   the lack of a gold standard.
 Large efforts have been devoted to the development of physical phantoms
@@ -94,28 +94,40 @@ Finally, an example dataset is openly released along with all the necessary requ
   to generate custom phantoms.
 
 
-\section{Data description}
+\section*{Data description}
 
 \noindent\textbf{\textit{Data Generation\textcolon}}
 The methods to generate the data in this paper are inspired by the work of \cite{wilkins_fiber_2014} and
   described in \autoref{fig:figure1}.
-\emph{Diffantom} observes two major improvements with respect to \citep{wilkins_fiber_2014}.
+\emph{Diffantom} integrates two major improvements with respect to \citep{wilkins_fiber_2014}.
 First, since we use a dataset from the \gls*{hcp} as input, data are corrected for the most relevant distortions.
-\cite{wilkins_fiber_2014} explicitly state that their original data did not subjected to certain distortion
+\cite{wilkins_fiber_2014} explicitly state that their original data were not subjected to certain distortion
   corrections, and thus, generated data are affected correspondingly.
-Second improvement is methodological, as we use a more complete signal model to generate the phantom thanks
-  to \emph{phantomas} \citep{caruyer_phantomas_2014}.
+Second improvement is a more advanced signal model to generate the phantom using
+  \emph{phantomas} \citep{caruyer_phantomas_2014}.
+{\color{red} Insert here relaxation parameters and diffusion parameters used in simulation. Mention the gradient
+scheme used by default --150 dirs, 2 shells using \citep{caruyer_design_2013}--, and that it may be changed by
+the user. Mention noise, and default snr.}
 
 
 \noindent\textbf{\textit{Interpretation and use\textcolon}}
 In order to release a reproducible dataset, along with an usable software to create custom data,
   we also distribute the software instrumentation presented in \autoref{fig:figure1}.
+\autoref{fig:figure2}, block A, describes the recommended use case of \emph{diffantom} in the evaluation
+  of algorithms and/or pipelines.
+Finally, \autoref{fig:figure2}, blocks B1-3, show some tractograms of fundamental bundles to illustrate
+  the features of the dataset.
+To obtain the whole-brain tractogram, we used the example dataset in a connectivity pipeline including
+  constrained spherical deconvolution and probabilistic tractography from
+  \emph{MRTrix} \citep{tournier_mrtrix_2012}.
+{\color{red} specify here more parameters (harmonics, etc)}
 
-\section{Discussion and conclusion}
+\section*{Discussion and conclusion}
 
 \noindent\textbf{\textit{Discussion\textcolon}}\label{sec:discussion} %
-Whole-brain, realistic \gls*{dmri} phantoms are necessary in current development of connectomics.
-The \emph{diffantom} is a derivative work from \citep{wilkins_fiber_2014} in terms of methodology for
+Whole-brain, realistic \gls*{dmri} phantoms are necessary in the developing field of structural
+  connectomics.
+The \emph{diffantom} is a derivative of \citep{wilkins_fiber_2014} in terms of methodology for
   simulation with two major improvements: the correctness of the \emph{minimally preprocessed} data
   \citep{glasser_minimal_2013} released within the \gls*{hcp}, and a more realistic diffusion
   model.
@@ -132,6 +144,8 @@ While this phantom is designed for the bundle-wise evaluation of tractography (w
 Therefore, \emph{diffantom} is complementary as the hypotheses that can be investigated are different and
   it does not require costly manual segmentation of bundles, highly demanding in terms of physiology expertise
   and operation time.
+Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to convert the gradient
+  scheme of the \gls*{hcp} to any target scheme.
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
 \emph{Diffantom} is a software layer to be applied on \acrfull*{hcp} datasets, that is openly and freely distributed
@@ -139,7 +153,7 @@ Therefore, \emph{diffantom} is complementary as the hypotheses that can be inves
 
 
 \section*{Data Sharing}
-
+{\color{red} Add here the pointers to data (dryad?) and software (github/zenodo doi) when available and say licences.}
 
 \section*{Disclosure/Conflict-of-Interest Statement}
 
@@ -196,7 +210,13 @@ Finally, data can be used to compute the whole-brain tractography, for instance.
 \includegraphics[width=\linewidth]{figures/figure02}
 \end{center}
 \textbf{\refstepcounter{figure}\label{fig:figure2} Figure \arabic{figure}. }%
-{Fig 2 caption}
+{\textbf{A. Recommended use of \emph{diffantom}}.
+The dataset can be used to test algorithms and pipelines against a perturbation that is
+  introduced in \emph{diffantom}.
+Perturbations can model typical artifacts found in \gls*{dmri} datasets or pathological conditions
+  such as a tumor.
+\textbf{B1, B2, B3. Tractograms of fundamental fiber bundles}.
+}
 \end{figure}
 
 \end{document}

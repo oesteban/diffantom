@@ -229,7 +229,7 @@
 \def\ps@headings
   {%
   \def\@oddfoot{\vbox to 12.5\p@{\rule{\textwidth}{0.5\p@}\vss
-        \hbox to \textwidth{\helveticabold\small {Frontiers}\hfill \thepage}%
+        \hbox to \textwidth{\helveticabold\small {Frontiers in Neuroanatomy}\hfill \thepage}%
         }}%
   \def\@evenfoot{\vbox to 12.5\p@{\rule{\textwidth}{0.5\p@}\vss
         \hbox to \textwidth{\helvetica\small {\color{red}This is a provisional file, not the final typeset article}\hfill\helveticabold\color{black}\thepage}%
