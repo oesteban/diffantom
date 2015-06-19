@@ -141,11 +141,12 @@ While this phantom is designed for the bundle-wise evaluation of tractography (w
   valid connections, invalid connections, missed connections, etc. \citep{cote_tractometer_2013}),
   \emph{diffantom} is intended for the connectome-wise evaluation of results, yielding tractography with
   a large number of bundles.
-Therefore, \emph{diffantom} is complementary as the hypotheses that can be investigated are different and
-  it does not require costly manual segmentation of bundles, highly demanding in terms of physiology expertise
-  and operation time.
-Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to convert the gradient
-  scheme of the \gls*{hcp} to any target scheme.
+Therefore, \emph{diffantom} and \emph{FiberFox} are complementary as the hypotheses that can be investigated are different.
+Moreover, \emph{diffantom} does not require costly manual segmentation of bundles, highly demanding in terms of physiology
+  expertise and operation time.
+This facilitates the use of \emph{diffantom} as a factory of whole-brain diffusion phantoms.
+Lastly, since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
+  \emph{b-matrix} of the \gls*{hcp} to any target scheme.
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
 \emph{Diffantom} is a software layer to be applied on \acrfull*{hcp} datasets, that is openly and freely distributed
