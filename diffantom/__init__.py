@@ -3,4 +3,6 @@
 # @Author: oesteban
 # @Date:   2015-06-15 14:50:01
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-15 14:50:01
+# @Last Modified time: 2015-06-23 12:31:14
+
+from interfaces import PhantomasSticksSim
