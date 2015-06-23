@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-15 14:50:01
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-23 12:31:14
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-06-23 13:05:13
 
-from interfaces import PhantomasSticksSim
+from interfaces import PhantomasSticksSim, LoadSamplingScheme
