@@ -105,22 +105,27 @@ First, since we use a dataset from the \gls*{hcp} as input, data are corrected f
   corrections, and thus, generated data are affected correspondingly.
 Second improvement is a more advanced signal model to generate the phantom using
   \emph{phantomas} \citep{caruyer_phantomas_2014}.
-{\color{red} Insert here relaxation parameters and diffusion parameters used in simulation. Mention the gradient
-scheme used by default --150 dirs, 2 shells using \citep{caruyer_design_2013}--, and that it may be changed by
-the user. Mention noise, and default snr.}
-
+By default, diffusion data are generated using a scheme of 100 directions distributed in two shells with uniform
+  coverage \citep{caruyer_design_2013}.
+Custom schemes can be generated supplying the tables of corresponding $b$-vectors and $b$-values.
+Rician noise is also included in \emph{phantomas}, and can be set by the user.
+The default value for \gls*{snr} is pre-set to 90.0.
 
 \noindent\textbf{\textit{Interpretation and use\textcolon}}
 In order to release a reproducible dataset, along with an usable software to create custom data,
   we also distribute the software instrumentation presented in \autoref{fig:figure1}.
+To ensure reproducibility and usability, the simulation pipeline is written using
+  \emph{nipype} \citep{gorgolewski_nipype_2011}.
 \autoref{fig:figure2}, block A, describes the recommended use case of \emph{diffantom} in the evaluation
   of algorithms and/or pipelines.
 Finally, \autoref{fig:figure2}, blocks B1-3, show some tractograms of fundamental bundles to illustrate
   the features of the dataset.
-To obtain the whole-brain tractogram, we used the example dataset in a connectivity pipeline including
-  constrained spherical deconvolution and probabilistic tractography from
+To obtain the whole-brain tractogram, the example dataset underwent a simplified connectivity pipeline including
+  \gls*{csd} and probabilistic tractography from
   \emph{MRTrix} \citep{tournier_mrtrix_2012}.
-{\color{red} specify here more parameters (harmonics, etc)}
+\Gls*{csd} was configured with up to 8 spherical harmonics, and tractography with 1.6$\times$10$^\text{6}$
+  seed points evenly distributed across a dilated mask of the \gls*{wm} tissue.
+
 
 \section*{Discussion and conclusion}
 
@@ -154,7 +159,7 @@ Lastly, since the gradient scheme can be set by the user, \emph{diffantom} can b
 
 
 \section*{Data Sharing}
-{\color{red} Add here the pointers to data (dryad?)}
+The example dataset is available under the \gls*{cc0} in {\color{red} (dryad?)}.
 Source code of \emph{diffantom} is available at \url{https://github.com/oesteban/phantomas} under an MIT licence.
 \emph{Phantomas} is available in \url{https://github.com/ecaruyer/phantomas/} under the revised-BSD licence.
 
@@ -198,7 +203,7 @@ This study was supported by the Spanish Ministry of Science and Innovation
 {\emph{Diffantom} is a software layer wrapping the \acrfull{hcp} datasets to generate whole-brain diffusion \gls*{dmri} data.
 First, the tissue fraction maps $\{T_1, T_2, T_3\}$ are computed using FSL FAST \citep{zhang_segmentation_2001}.
 Second, the fiber orientation maps $\{V_1, V_2, V_3\}$ and corresponding volume fraction maps $\{F_1, F_2, F_3\}$ are
-  obtained using the Multi-Shell ball-and-stick model of BEDPOSTX \citep{jbabdi_modelbased_2012}.
+  obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}.
 The third step takes the fiber orientations $\{V_1, V_2, V_3\}$ and their weights $\{F_1, F_2, F_3\}$ to compute the
   corresponding \glspl{fod} using spherical convolution of the single fiber response with each fiber orientation at
   each voxel.
