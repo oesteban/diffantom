@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-23 12:37:25
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-06-25 17:01:20
 
 import os
 import os.path as op
@@ -11,6 +11,7 @@ import numpy as np
 import nipype.pipeline.engine as pe             # pipeline engine
 
 from nipype.interfaces import utility as niu         # utility
+from nipype.interfaces import io as nio
 from nipype.interfaces import fsl                    # fsl
 from nipype.interfaces import freesurfer as fs       # freesurfer
 from nipype.interfaces.dipy import Denoise
@@ -19,15 +20,59 @@ import utils as pu
 from interfaces import PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter
 
 
-def simulate(name='SimDWI', icorr=True, btable=False):
-    in_fields = ['fibers', 'fractions', 'in_mask']
-    if icorr:
-        in_fields += ['jacobian']
+def gen_diffantom(name='Diffantom', settings={}):
+    sgm_structures = ['L_Accu', 'R_Accu', 'L_Caud', 'R_Caud',
+                      'L_Pall', 'R_Pall', 'L_Puta', 'R_Puta',
+                      'L_Thal', 'R_Thal']
 
-    if btable:
-        in_fields += ['bval', 'bvec']
-    else:
-        in_fields += ['scheme']
+    inputnode = pe.Node(niu.IdentityInterface(
+        fields=['subject_id', 'data_dir']), name='inputnode')
+    inputnode.inputs.subject_id = settings['subject_id']
+    inputnode.inputs.data_dir = settings['data_dir']
+
+    fnames = dict(t1w='T1w_acpc_dc_restore.nii.gz',
+                  fibers='fiber*.nii.gz',
+                  vfractions='vfraction*.nii.gz',
+                  scheme='samples.txt')
+
+    ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
+
+    ds = pe.Node(nio.DataGrabber(
+        infields=['subject_id'], sort_filelist=True, template='*',
+        outfields=ds_tpl_args.keys()), name='DataSource')
+    ds.inputs.field_template = {k: 'models/%s/%s'
+                                for k in ds_tpl_args.keys()}
+    ds.inputs.template_args = ds_tpl_args
+
+    bet = pe.Node(
+        fsl.BET(frac=0.15, robust=True, mask=True), name='BrainExtraction')
+
+    fast = pe.Node(fsl.FAST(number_classes=3, img_type=1, no_bias=True,
+                            probability_maps=True), name='SegmentT1')
+    first = pe.Node(fsl.FIRST(
+        list_of_specific_structures=sgm_structures, brain_extracted=True),
+        name='FIRST')
+
+    sim_mod = preprocess_model()
+    sim_ref = simulate()
+
+    wf = pe.Workflow(name=name)
+    wf.connect([
+        (inputnode, ds,       [('subject_id', 'subject_id'),
+                               ('data_dir', 'base_directory')]),
+        (ds,        bet,      [('t1w', 'in_file')]),
+        (ds,        sim_mod,  [('fibers', 'inputnode.fibers'),
+                               ('vfractions', 'inputnode.vfractions')]),
+        (bet,       sim_mod,  [('mask_file', 'inputnode.in_mask')]),
+        (bet,       fast,     [('out_file', 'in_files')]),
+        (fast,      sim_mod,  [('partial_volume_files', 'inputnode.in_tpms')]),
+        (bet,       first,    [('out_file', 'in_file')])
+    ])
+    return wf
+
+
+def simulate(name='SimDWI'):
+    in_fields = ['fibers', 'fractions', 'in_mask', 'scheme']
 
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputnode')
@@ -49,42 +94,13 @@ def simulate(name='SimDWI', icorr=True, btable=False):
                                  ('out2', 'in_vfms')]),
         (inputnode, simdwi,     [('fibers', 'in_dirs')]),
         (simdwi,    outputnode, [('out_mask', 'out_mask'),
-                                 ('out_fods', 'out_fods')])
+                                 ('out_fods', 'out_fods')]),
+        (inputnode, sch,        [('scheme', 'in_file')]),
+        (sch,       simdwi,     [('out_bval', 'in_bval'),
+                                 ('out_bvec', 'in_bvec')]),
+        (sch,       outputnode, [('out_bvec', 'bvec'),
+                                 ('out_bval', 'bval')])
     ])
-
-    if icorr:
-        split = pe.Node(fsl.utils.Split(dimension='t'), name='Split_DWIs')
-        merge = pe.Node(fsl.utils.Merge(dimension='t'), name='Merge_DWIs')
-
-        jacmask = pe.Node(fs.ApplyMask(), name='JacobianMask')
-        jacmult = pe.MapNode(fsl.MultiImageMaths(op_string='-mul %s'),
-                             iterfield=['in_file'], name='ModulateDWIs')
-        wf.connect([
-            (inputnode,     jacmask, [('jacobian', 'in_file'),
-                                      ('in_mask', 'mask_file')]),
-            (jacmask,       jacmult, [('out_file', 'operand_files')]),
-            (simdwi,          split, [('out_file', 'in_file')]),
-            (split,         jacmult, [('out_files', 'in_file')]),
-            (jacmult,         merge, [('out_file', 'in_files')]),
-            (merge,      outputnode, [('merged_file', 'dwi')])
-        ])
-    else:
-        wf.connect(simdwi, 'out_file', outputnode, 'dwi')
-
-    if btable:
-        wf.connect([
-            (inputnode, simdwi, [('bval', 'in_bval'), ('bvec', 'in_bvec')]),
-            (inputnode, outputnode, [('bvec', 'bvec'),
-                                     ('bval', 'bval')])
-        ])
-    else:
-        wf.connect([
-            (inputnode, sch,        [('scheme', 'in_file')]),
-            (sch,       simdwi,     [('out_bval', 'in_bval'),
-                                     ('out_bvec', 'in_bvec')]),
-            (sch,       outputnode, [('out_bvec', 'bvec'),
-                                     ('out_bval', 'bval')])
-        ])
 
     return wf
 
