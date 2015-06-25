@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:16
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-23 12:36:21
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-06-25 20:49:48
 
 
 def _sim_mask(in_file):
@@ -153,3 +153,56 @@ def sigmoid_filter(data, mask=None, a=2.00, b=85.0, maxout=2000.0):
     newdata = np.zeros_like(data)
     newdata[idxs] = ddor
     return newdata
+
+
+def fixvtk(in_file, in_ref, out_file=None):
+    """
+    Translates surfaces to the corresponding origin
+    """
+    import nibabel as nb
+    import numpy as np
+    import os.path as op
+    import subprocess as sp
+
+    if out_file is None:
+        fname, ext = op.splitext(op.basename(in_file))
+        if ext == ".gz":
+            fname, _ = op.splitext(fname)
+        out_file = op.abspath("%s_fixed.vtk" % fname)
+
+    im = nb.load(in_ref)
+    aff = im.get_affine()
+    mni_orig = aff[:3, 3]
+    flip = np.ones(3, dtype=np.float32)
+    flip[mni_orig > 0.0] = -1.0
+
+    with open(in_file, 'r') as f:
+        with open(out_file, 'w+') as w:
+            npoints = 0
+            pointid = -5
+
+            w.write("# vtk DataFile Version 1.0\n"
+                    "vtk output\n"
+                    "ASCII\n"
+                    "DATASET POLYDATA\n")
+
+            for i, l in enumerate(f):
+                if (i == 4):
+                    s = l.split()
+                    npoints = int(s[1])
+                    fmt = np.dtype(s[2])
+                    w.write(l)
+                elif ((i > 4) and (pointid < npoints)):
+                    vert = np.array([float(x) for x in l.split()])
+                    newvert = vert * flip + mni_orig
+                    l = '%.5f  %.5f  %.5f\n' % tuple(newvert)
+                    w.write(l)
+                elif pointid == npoints:
+                    s = l.split()
+                    w.write("POLYGONS %d %d\n" % (int(s[1]), int(s[2])))
+                elif pointid > npoints:
+                    w.write(l)
+
+                pointid += 1
+
+    return out_file

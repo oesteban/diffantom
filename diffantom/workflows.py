@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-06-25 17:01:20
+# @Last Modified time: 2015-06-25 18:38:27
 
 import os
 import os.path as op
@@ -18,6 +18,7 @@ from nipype.interfaces.dipy import Denoise
 
 import utils as pu
 from interfaces import PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter
+from pyacwereg.interfaces import Surf2Vol
 
 
 def gen_diffantom(name='Diffantom', settings={}):
@@ -50,11 +51,17 @@ def gen_diffantom(name='Diffantom', settings={}):
     fast = pe.Node(fsl.FAST(number_classes=3, img_type=1, no_bias=True,
                             probability_maps=True), name='SegmentT1')
     first = pe.Node(fsl.FIRST(
-        list_of_specific_structures=sgm_structures, brain_extracted=True),
-        name='FIRST')
+        list_of_specific_structures=sgm_structures, brain_extracted=True,
+        method='auto'), name='FIRST')
+
+    mesh2pve = pe.Node(Surf2Vol(), name='Mesh2PVE')
 
     sim_mod = preprocess_model()
     sim_ref = simulate()
+
+    fixVTK = pe.MapNode(niu.Function(
+        input_names=['in_file', 'in_ref'], output_names=['out_file'],
+        function=pu.fixvtk), name='fixVTK', iterfield=['in_file'])
 
     wf = pe.Workflow(name=name)
     wf.connect([
@@ -63,10 +70,19 @@ def gen_diffantom(name='Diffantom', settings={}):
         (ds,        bet,      [('t1w', 'in_file')]),
         (ds,        sim_mod,  [('fibers', 'inputnode.fibers'),
                                ('vfractions', 'inputnode.vfractions')]),
+        (ds,        sim_ref,  [('scheme', 'inputnode.scheme')]),
         (bet,       sim_mod,  [('mask_file', 'inputnode.in_mask')]),
         (bet,       fast,     [('out_file', 'in_files')]),
         (fast,      sim_mod,  [('partial_volume_files', 'inputnode.in_tpms')]),
-        (bet,       first,    [('out_file', 'in_file')])
+        (bet,       first,    [('out_file', 'in_file')]),
+        (first,     fixVTK,   [('vtk_surfaces', 'in_file')]),
+        (ds,        fixVTK,   [('t1w', 'in_ref')]),
+        (ds,        mesh2pve, [('t1w', 'reference')]),
+        (fixVTK,    mesh2pve, [('out_file', 'surfaces')]),
+        (bet,       sim_ref,  [('mask_file', 'inputnode.in_mask')]),
+        (sim_mod,   sim_ref,     [
+            ('outputnode.fibers', 'inputnode.fibers'),
+            ('outputnode.fractions', 'inputnode.fractions')]),
     ])
     return wf
 
