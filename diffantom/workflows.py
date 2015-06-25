@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-06-25 18:38:27
+# @Last Modified time: 2015-06-25 21:06:56
 
 import os
 import os.path as op
@@ -25,6 +25,9 @@ def gen_diffantom(name='Diffantom', settings={}):
     sgm_structures = ['L_Accu', 'R_Accu', 'L_Caud', 'R_Caud',
                       'L_Pall', 'R_Pall', 'L_Puta', 'R_Puta',
                       'L_Thal', 'R_Thal']
+
+    def _getfirst(inlist):
+        return inlist[0]
 
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['subject_id', 'data_dir']), name='inputnode')
@@ -53,9 +56,8 @@ def gen_diffantom(name='Diffantom', settings={}):
     first = pe.Node(fsl.FIRST(
         list_of_specific_structures=sgm_structures, brain_extracted=True,
         method='auto'), name='FIRST')
-
+    reslice = pe.Node(fs.MRIConvert(), name='ResliceMask')
     mesh2pve = pe.Node(Surf2Vol(), name='Mesh2PVE')
-
     sim_mod = preprocess_model()
     sim_ref = simulate()
 
@@ -71,7 +73,9 @@ def gen_diffantom(name='Diffantom', settings={}):
         (ds,        sim_mod,  [('fibers', 'inputnode.fibers'),
                                ('vfractions', 'inputnode.vfractions')]),
         (ds,        sim_ref,  [('scheme', 'inputnode.scheme')]),
-        (bet,       sim_mod,  [('mask_file', 'inputnode.in_mask')]),
+        (bet,       reslice,  [('mask_file', 'in_file')]),
+        (ds,        reslice,  [(('vfractions', _getfirst), 'reslice_like')]),
+        (reslice,   sim_mod,  [('out_file', 'inputnode.in_mask')]),
         (bet,       fast,     [('out_file', 'in_files')]),
         (fast,      sim_mod,  [('partial_volume_files', 'inputnode.in_tpms')]),
         (bet,       first,    [('out_file', 'in_file')]),
