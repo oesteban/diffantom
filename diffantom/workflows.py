@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-06-25 21:06:56
+# @Last Modified time: 2015-06-26 13:36:10
 
 import os
 import os.path as op
@@ -80,7 +80,7 @@ def gen_diffantom(name='Diffantom', settings={}):
         (fast,      sim_mod,  [('partial_volume_files', 'inputnode.in_tpms')]),
         (bet,       first,    [('out_file', 'in_file')]),
         (first,     fixVTK,   [('vtk_surfaces', 'in_file')]),
-        (ds,        fixVTK,   [('t1w', 'in_ref')]),
+        (ds,        fixVTK,   [(('vfractions', _getfirst), 'in_ref')]),
         (ds,        mesh2pve, [('t1w', 'reference')]),
         (fixVTK,    mesh2pve, [('out_file', 'surfaces')]),
         (bet,       sim_ref,  [('mask_file', 'inputnode.in_mask')]),
