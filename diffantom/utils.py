@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:16
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-06-25 20:49:48
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-06-30 12:13:12
 
 
 def _sim_mask(in_file):
@@ -204,5 +204,25 @@ def fixvtk(in_file, in_ref, out_file=None):
                     w.write(l)
 
                 pointid += 1
+
+    return out_file
+
+
+def merge_first(inlist, out_file='first_merged.nii.gz'):
+    import os.path as op
+    import nibabel as nb
+    import numpy as np
+    import natsort as ns
+
+    out_file = op.abspath(out_file)
+    inlist = ns.natsorted(inlist, key=lambda y: y.lower())
+
+    imgs = [nb.load(f) for f in inlist]
+    im = nb.concat_images(imgs)
+    data = np.clip(np.sum(np.squeeze(im.get_data()), axis=3),
+                   0.0, 1.0)
+
+    nb.Nifti1Image(data, imgs[0].get_affine(),
+                   imgs[0].get_header()).to_filename(out_file)
 
     return out_file

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-06-26 13:36:10
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-06-30 12:24:01
 
 import os
 import os.path as op
@@ -15,6 +15,7 @@ from nipype.interfaces import io as nio
 from nipype.interfaces import fsl                    # fsl
 from nipype.interfaces import freesurfer as fs       # freesurfer
 from nipype.interfaces.dipy import Denoise
+from nipype.interfaces import mrtrix3 as mrt3
 
 import utils as pu
 from interfaces import PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter
@@ -28,6 +29,9 @@ def gen_diffantom(name='Diffantom', settings={}):
 
     def _getfirst(inlist):
         return inlist[0]
+
+    def _sort(inlist):
+        return sorted(inlist)
 
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['subject_id', 'data_dir']), name='inputnode')
@@ -53,11 +57,21 @@ def gen_diffantom(name='Diffantom', settings={}):
 
     fast = pe.Node(fsl.FAST(number_classes=3, img_type=1, no_bias=True,
                             probability_maps=True), name='SegmentT1')
+    resfast = pe.MapNode(fs.MRIConvert(), name='ResliceFAST',
+                         iterfield=['in_file'])
+
     first = pe.Node(fsl.FIRST(
         list_of_specific_structures=sgm_structures, brain_extracted=True,
-        method='auto'), name='FIRST')
+        method='fast'), name='FIRST')
     reslice = pe.Node(fs.MRIConvert(), name='ResliceMask')
-    mesh2pve = pe.Node(Surf2Vol(), name='Mesh2PVE')
+    mesh2pve = pe.MapNode(mrt3.Mesh2PVE(), iterfield=['in_file'],
+                          name='Mesh2PVE')
+    mfirst = pe.Node(niu.Function(
+        function=pu.merge_first, input_names=['inlist'],
+        output_names=['out_file']), name='FIRSTMerge')
+
+    gen5tt = pe.Node(mrt3.Generate5tt(out_file='act5tt.nii.gz'),
+                     name='Generate5TT')
     sim_mod = preprocess_model()
     sim_ref = simulate()
 
@@ -77,12 +91,17 @@ def gen_diffantom(name='Diffantom', settings={}):
         (ds,        reslice,  [(('vfractions', _getfirst), 'reslice_like')]),
         (reslice,   sim_mod,  [('out_file', 'inputnode.in_mask')]),
         (bet,       fast,     [('out_file', 'in_files')]),
+        (fast,      resfast,  [(('partial_volume_files', _sort), 'in_file')]),
+        (ds,        resfast,  [(('vfractions', _getfirst), 'reslice_like')]),
         (fast,      sim_mod,  [('partial_volume_files', 'inputnode.in_tpms')]),
         (bet,       first,    [('out_file', 'in_file')]),
         (first,     fixVTK,   [('vtk_surfaces', 'in_file')]),
         (ds,        fixVTK,   [(('vfractions', _getfirst), 'in_ref')]),
-        (ds,        mesh2pve, [('t1w', 'reference')]),
-        (fixVTK,    mesh2pve, [('out_file', 'surfaces')]),
+        (ds,        mesh2pve, [(('vfractions', _getfirst), 'reference')]),
+        (fixVTK,    mesh2pve, [('out_file', 'in_file')]),
+        (mesh2pve,  mfirst,   [('out_file', 'inlist')]),
+        (resfast,   gen5tt,   [('out_file', 'in_fast')]),
+        (mfirst,    gen5tt,   [('out_file', 'in_first')]),
         (bet,       sim_ref,  [('mask_file', 'inputnode.in_mask')]),
         (sim_mod,   sim_ref,     [
             ('outputnode.fibers', 'inputnode.fibers'),
