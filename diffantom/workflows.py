@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-01 10:18:57
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-07-01 10:33:26
 
 import os
 import os.path as op
@@ -58,7 +58,7 @@ def gen_diffantom(name='Diffantom', settings={}):
             ('outputnode.fibers', 'inputnode.fibers'),
             ('outputnode.fractions', 'inputnode.fractions'),
             ('outputnode.out_mask', 'inputnode.in_mask'),
-            ('outputnode.out_5tt', 'inputnode.in_5tt')]),
+            ('outputnode.out_iso', 'inputnode.in_5tt')]),
     ])
     return wf
 
@@ -109,7 +109,7 @@ def preprocess_model(name='PrepareModel'):
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['fibers', 'fractions', 'out_5tt', 'out_mask']),
+        fields=['fibers', 'fractions', 'out_5tt', 'out_iso', 'out_mask']),
         name='outputnode')
 
     def _getfirst(inlist):
@@ -195,7 +195,8 @@ def preprocess_model(name='PrepareModel'):
         (enh,       post,       [('out_file', 'sf_vfs')]),
         (sel4tt,    post,       [('out', 'tissue_vfs')]),
         (post,      outputnode, [('out_sf', 'fractions'),
-                                 ('out_ts', 'out_5tt')]),
+                                 ('out_ts', 'out_iso')]),
+        (gen5tt,    outputnode, [('out_file', 'out_5tt')]),
         (fixtsr,    outputnode, [('out_file', 'fibers')]),
         (reslice,   outputnode, [('out_file', 'out_mask')]),
         # (post,      outputnode, [('out_wmmsk', 'out_wmmsk')])
