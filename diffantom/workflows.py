@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-30 12:24:01
+# @Last Modified time: 2015-07-01 08:17:45
 
 import os
 import os.path as op
@@ -93,7 +93,6 @@ def gen_diffantom(name='Diffantom', settings={}):
         (bet,       fast,     [('out_file', 'in_files')]),
         (fast,      resfast,  [(('partial_volume_files', _sort), 'in_file')]),
         (ds,        resfast,  [(('vfractions', _getfirst), 'reslice_like')]),
-        (fast,      sim_mod,  [('partial_volume_files', 'inputnode.in_tpms')]),
         (bet,       first,    [('out_file', 'in_file')]),
         (first,     fixVTK,   [('vtk_surfaces', 'in_file')]),
         (ds,        fixVTK,   [(('vfractions', _getfirst), 'in_ref')]),
@@ -102,6 +101,7 @@ def gen_diffantom(name='Diffantom', settings={}):
         (mesh2pve,  mfirst,   [('out_file', 'inlist')]),
         (resfast,   gen5tt,   [('out_file', 'in_fast')]),
         (mfirst,    gen5tt,   [('out_file', 'in_first')]),
+        (gen5tt,    sim_mod,  [('out_file', 'inputnode.in_5tt')]),
         (bet,       sim_ref,  [('mask_file', 'inputnode.in_mask')]),
         (sim_mod,   sim_ref,     [
             ('outputnode.fibers', 'inputnode.fibers'),
@@ -119,10 +119,9 @@ def simulate(name='SimDWI'):
         fields=['dwi', 'bvec', 'bval', 'out_mask', 'out_fods']),
         name='outputnode')
 
-    split = pe.Node(niu.Split(splits=[3, 3]), name='SplitFractions')
+    split = pe.Node(niu.Split(splits=[3, 4]), name='SplitFractions')
     sch = pe.Node(LoadSamplingScheme(bvals=[1000, 3000]), name='LoadScheme')
     simdwi = pe.Node(PhantomasSticksSim(
-        diff_gm=1.0e-3, diff_wm=0.9e-3, diff_csf=3.0e-3,
         lambda1=2.2e-3, lambda2=.2e-3, snr=90, save_fods=True),
         name='SimulateDWI')
 
@@ -130,7 +129,7 @@ def simulate(name='SimDWI'):
     wf.connect([
         (inputnode, split,      [('fractions', 'inlist')]),
         (split,     simdwi,     [('out1', 'in_frac'),
-                                 ('out2', 'in_vfms')]),
+                                 ('out2', 'in_5tt')]),
         (inputnode, simdwi,     [('fibers', 'in_dirs')]),
         (simdwi,    outputnode, [('out_mask', 'out_mask'),
                                  ('out_fods', 'out_fods')]),
@@ -145,7 +144,7 @@ def simulate(name='SimDWI'):
 
 
 def preprocess_model(name='PrepareModel'):
-    in_fields = ['fibers', 'vfractions', 'in_tpms', 'in_mask']
+    in_fields = ['fibers', 'vfractions', 'in_5tt', 'in_mask']
 
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputnode')
@@ -162,8 +161,8 @@ def preprocess_model(name='PrepareModel'):
         input_names=['in_file'], output_names=['out_file'],
         function=pu.fix_tensors), iterfield=['in_file'], name='FixTensors')
 
-    regtpm = pe.MapNode(fs.MRIConvert(out_type='niigz', out_datatype='float'),
-                        name='RegridTPMs', iterfield=['in_file'])
+    spl5tt = pe.Node(fsl.Split(dimension='t'), name='Split5tt')
+    sel4tt = pe.Node(niu.Select(index=range(4)), name='Select4tt')
 
     dwimsk = pe.Node(niu.Function(
         function=pu._sim_mask, input_names=['in_file'],
@@ -186,18 +185,18 @@ def preprocess_model(name='PrepareModel'):
 
     wf = pe.Workflow(name=name)
     wf.connect([
-        (inputnode, regtpm,     [('in_tpms', 'in_file'),
-                                 (('vfractions', _getfirst), 'reslice_like')]),
+        (inputnode, spl5tt,     [('in_5tt', 'in_file')]),
         (inputnode, fixtsr,     [('fibers', 'in_file')]),
         (inputnode, selvfs,     [('vfractions', 'inlist')]),
+        (spl5tt,    sel4tt,     [('out_files', 'inlist')]),
         (selvfs,    mskvfs,     [('out', 'in_file')]),
-        (regtpm,    dwimsk,     [('out_file', 'in_file')]),
+        (sel4tt,    dwimsk,     [('out', 'in_file')]),
         (dwimsk,    mskvfs,     [('out_file', 'mask_file')]),
         (mskvfs,    denoise,    [('out_file', 'in_file')]),
         (inputnode, denoise,    [('in_mask', 'in_mask')]),
         (denoise,   enh,        [('out_file', 'in_file')]),
         (enh,       post,       [('out_file', 'sf_vfs')]),
-        (regtpm,    post,       [('out_file', 'tissue_vfs')]),
+        (sel4tt,    post,       [('out', 'tissue_vfs')]),
         (post,      merge,      [('out_sf', 'in1'),
                                  ('out_ts', 'in2')]),
         (merge,     outputnode, [('out', 'fractions')]),

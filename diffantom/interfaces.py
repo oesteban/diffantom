@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:29:58
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-23 12:39:15
+# @Last Modified time: 2015-07-01 09:49:12
 
 import os
 import os.path as op
@@ -31,9 +31,9 @@ class PhantomasSticksSimInputSpec(CommandLineInputSpec):
     in_frac = InputMultiPath(
         File(exists=True), mandatory=True, argstr='--sticks_vfs %s',
         desc=('volume fraction of each fiber'))
-    in_vfms = InputMultiPath(
+    in_5tt = InputMultiPath(
         File(exists=True), mandatory=True, argstr='--tissue_vf %s',
-        desc=('volume fractions of isotropic compartiments'))
+        desc=('volume fractions of isotropic compartiments in 5TT format'))
 
     in_bvec = File(exists=True, argstr='-r %s',
                    mandatory=True, desc='input bvecs file')
@@ -43,12 +43,11 @@ class PhantomasSticksSimInputSpec(CommandLineInputSpec):
     snr = traits.Int(100, argstr='--snr %f', usedefault=True,
                      desc='signal-to-noise ratio (dB)')
 
-    diff_csf = traits.Float(3.0e-3, usedefault=True, argstr='--diff_csf %f',
-                            desc='csf diffusivity')
-    diff_gm = traits.Float(.7e-3, usedefault=True, argstr='--diff_gm %f',
-                           desc='gray matter diffusivity')
-    diff_wm = traits.Float(.9e-3, usedefault=True, argstr='--diff_wm %f',
-                           desc='gray matter diffusivity')
+    diff_5tt = traits.Tuple(
+        (7e-4, 9e-4, 2e-4, 3.e-3, 1e-4), traits.Float(), traits.Float(),
+        traits.Float(), traits.Float(), traits.Float(), usedefault=True,
+        argstr='--diff_iso %f %f %f %f %f',
+        desc='diffusion of isotropic compartments')
 
     lambda1 = traits.Float(2.2e-3, usedefault=True, argstr='--lambda1 %f',
                            desc='First eigenvalue of simulated tensor')
