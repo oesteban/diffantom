@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:29:58
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-01 09:49:12
+# @Last Modified time: 2015-07-01 10:59:48
 
 import os
 import os.path as op
@@ -187,7 +187,8 @@ class LoadSamplingSchemeInputSpec(BaseInterfaceInputSpec):
 
 class LoadSamplingSchemeOutputSpec(TraitedSpec):
     out_bval = File(desc='output bvals')
-    out_bvec = File(desc='output bvals')
+    out_bvec = File(desc='output bvecs')
+    out_fsl = OutputMultiPath(desc='output b-matrix in fsl format')
 
 
 class LoadSamplingScheme(BaseInterface):
@@ -231,6 +232,9 @@ class LoadSamplingScheme(BaseInterface):
 
     def _list_outputs(self):
         outputs = self._outputs().get()
-        outputs['out_bval'] = op.abspath(self.inputs.out_bval)
-        outputs['out_bvec'] = op.abspath(self.inputs.out_bvec)
+
+        outputs['out_fsl'] = [op.abspath(self.inputs.out_bvec),
+                              op.abspath(self.inputs.out_bval)]
+        outputs['out_bvec'] = outputs['out_fsl'][0]
+        outputs['out_bval'] = outputs['out_fsl'][1]
         return outputs

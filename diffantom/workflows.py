@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-01 10:33:26
+# @Last Modified time: 2015-07-01 11:02:01
 
 import os
 import os.path as op
@@ -45,6 +45,7 @@ def gen_diffantom(name='Diffantom', settings={}):
 
     sim_mod = preprocess_model()
     sim_ref = simulate()
+    trk = act_workflow()
 
     wf = pe.Workflow(name=name)
     wf.connect([
@@ -59,6 +60,9 @@ def gen_diffantom(name='Diffantom', settings={}):
             ('outputnode.fractions', 'inputnode.fractions'),
             ('outputnode.out_mask', 'inputnode.in_mask'),
             ('outputnode.out_iso', 'inputnode.in_5tt')]),
+        (sim_ref,   trk,      [('outputnode.dwi', 'inputnode.in_dwi'),
+                               ('outputnode.sch_fsl', 'inputnode.in_scheme')]),
+        (sim_mod,   trk,      [('outputnode.out_5tt', 'inputnode.in_5tt')])
     ])
     return wf
 
@@ -69,7 +73,7 @@ def simulate(name='SimDWI'):
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['dwi', 'bvec', 'bval', 'out_mask', 'out_fods']),
+        fields=['dwi', 'bvec', 'bval', 'out_mask', 'out_fods', 'sch_fsl']),
         name='outputnode')
 
     sch = pe.Node(LoadSamplingScheme(bvals=[1000, 3000]), name='LoadScheme')
@@ -88,7 +92,8 @@ def simulate(name='SimDWI'):
         (sch,       simdwi,     [('out_bval', 'in_bval'),
                                  ('out_bvec', 'in_bvec')]),
         (sch,       outputnode, [('out_bvec', 'bvec'),
-                                 ('out_bval', 'bval')])
+                                 ('out_bval', 'bval'),
+                                 ('out_fsl', 'sch_fsl')])
     ])
 
     return wf
@@ -198,8 +203,36 @@ def preprocess_model(name='PrepareModel'):
                                  ('out_ts', 'out_iso')]),
         (gen5tt,    outputnode, [('out_file', 'out_5tt')]),
         (fixtsr,    outputnode, [('out_file', 'fibers')]),
-        (reslice,   outputnode, [('out_file', 'out_mask')]),
-        # (post,      outputnode, [('out_wmmsk', 'out_wmmsk')])
+        (reslice,   outputnode, [('out_file', 'out_mask')])
     ])
 
+    return wf
+
+
+def act_workflow(name='Tractography'):
+    inputnode = pe.Node(niu.IdentityInterface(
+        fields=['in_dwi', 'in_scheme', 'in_5tt']), name='inputnode')
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=['out_file']), name='outputnode')
+
+    def _astuple(inlist):
+        return tuple(inlist)
+
+    resp = pe.Node(mrt3.ResponseSD(), name='EstimateResponse')
+    fod = pe.Node(mrt3.EstimateFOD(), name='EstimateFODs')
+    trk = pe.Node(mrt3.Tractography(), name='Track')
+
+    wf = pe.Workflow(name=name)
+    wf.connect([
+        (inputnode, resp,       [('in_dwi', 'in_file'),
+                                 (('in_scheme', _astuple), 'grad_fsl')]),
+        (inputnode, fod,        [('in_dwi', 'in_file'),
+                                 (('in_scheme', _astuple), 'grad_fsl')]),
+        (resp,      fod,        [('out_file', 'response')]),
+        (fod,       trk,        [('out_file', 'in_file')]),
+        (inputnode, trk,        [('in_5tt', 'act_file'),
+                                 (('in_scheme', _astuple), 'grad_fsl')]),
+        (trk,       outputnode, [('out_file', 'out_file')])
+
+    ])
     return wf
