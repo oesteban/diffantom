@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-01 11:02:01
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-07-01 12:02:10
 
 import os
 import os.path as op
@@ -86,7 +86,8 @@ def simulate(name='SimDWI'):
         (inputnode, simdwi,     [('fibers', 'in_dirs'),
                                  ('fractions', 'in_frac'),
                                  ('in_5tt', 'in_5tt')]),
-        (simdwi,    outputnode, [('out_mask', 'out_mask'),
+        (simdwi,    outputnode, [('out_file', 'dwi'),
+                                 ('out_mask', 'out_mask'),
                                  ('out_fods', 'out_fods')]),
         (inputnode, sch,        [('scheme', 'in_file')]),
         (sch,       simdwi,     [('out_bval', 'in_bval'),
