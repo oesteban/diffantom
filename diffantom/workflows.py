@@ -61,7 +61,7 @@ def gen_diffantom(name='Diffantom', settings={}):
             ('outputnode.out_mask', 'inputnode.in_mask'),
             ('outputnode.out_iso', 'inputnode.in_5tt')]),
         (sim_ref,   trk,      [('outputnode.dwi', 'inputnode.in_dwi'),
-                               ('outputnode.sch_fsl', 'inputnode.in_scheme')]),
+                               ('outputnode.out_grad', 'inputnode.in_scheme')]),
         (sim_mod,   trk,      [('outputnode.out_5tt', 'inputnode.in_5tt')])
     ])
     return wf
@@ -73,7 +73,7 @@ def simulate(name='SimDWI'):
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['dwi', 'bvec', 'bval', 'out_mask', 'out_fods', 'sch_fsl']),
+        fields=['dwi', 'bvec', 'bval', 'out_mask', 'out_fods', 'out_grad']),
         name='outputnode')
 
     sch = pe.Node(LoadSamplingScheme(bvals=[1000, 3000]), name='LoadScheme')
@@ -94,7 +94,7 @@ def simulate(name='SimDWI'):
                                  ('out_bvec', 'in_bvec')]),
         (sch,       outputnode, [('out_bvec', 'bvec'),
                                  ('out_bval', 'bval'),
-                                 ('out_fsl', 'sch_fsl')])
+                                 ('out_mrtrix', 'out_grad')])
     ])
 
     return wf
@@ -216,9 +216,6 @@ def act_workflow(name='Tractography'):
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['out_file']), name='outputnode')
 
-    def _astuple(inlist):
-        return tuple(inlist)
-
     resp = pe.Node(mrt3.ResponseSD(), name='EstimateResponse')
     fod = pe.Node(mrt3.EstimateFOD(), name='EstimateFODs')
     trk = pe.Node(mrt3.Tractography(), name='Track')
@@ -226,13 +223,13 @@ def act_workflow(name='Tractography'):
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, resp,       [('in_dwi', 'in_file'),
-                                 (('in_scheme', _astuple), 'grad_fsl')]),
+                                 ('in_scheme', 'grad_file')]),
         (inputnode, fod,        [('in_dwi', 'in_file'),
-                                 (('in_scheme', _astuple), 'grad_fsl')]),
+                                 ('in_scheme', 'grad_file')]),
         (resp,      fod,        [('out_file', 'response')]),
         (fod,       trk,        [('out_file', 'in_file')]),
         (inputnode, trk,        [('in_5tt', 'act_file'),
-                                 (('in_scheme', _astuple), 'grad_fsl')]),
+                                 ('in_scheme', 'grad_file')]),
         (trk,       outputnode, [('out_file', 'out_file')])
 
     ])

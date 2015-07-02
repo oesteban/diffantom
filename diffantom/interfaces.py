@@ -183,12 +183,14 @@ class LoadSamplingSchemeInputSpec(BaseInterfaceInputSpec):
     n_b0 = traits.Int(1, usedefault=True, desc='number of b0')
     out_bval = File('scheme.bval', usedefault=True, desc='output bvals')
     out_bvec = File('scheme.bvec', usedefault=True, desc='output bvals')
+    out_mrtrix = File('grad.txt', usedefault=True, desc='output bvals')
 
 
 class LoadSamplingSchemeOutputSpec(TraitedSpec):
     out_bval = File(desc='output bvals')
     out_bvec = File(desc='output bvecs')
     out_fsl = OutputMultiPath(desc='output b-matrix in fsl format')
+    out_mrtrix = File(desc='output sampling scheme for use in MRTrix')
 
 
 class LoadSamplingScheme(BaseInterface):
@@ -222,6 +224,9 @@ class LoadSamplingScheme(BaseInterface):
                 bvals = np.insert(bvals, i * sp, 0.0, axis=0)
                 bvecs = np.insert(bvecs, i * sp, np.zeros(3), axis=0)
 
+        np.savetxt(op.abspath(self.inputs.out_mrtrix),
+                   np.vstack((bvecs.T, bvals)).T, fmt='%.4f')
+
         np.savetxt(op.abspath(self.inputs.out_bvec),
                    bvecs.T, fmt='%.6f')
 
@@ -233,6 +238,7 @@ class LoadSamplingScheme(BaseInterface):
     def _list_outputs(self):
         outputs = self._outputs().get()
 
+        outputs['out_mrtrix'] = op.abspath(self.inputs.out_mrtrix)
         outputs['out_fsl'] = [op.abspath(self.inputs.out_bvec),
                               op.abspath(self.inputs.out_bval)]
         outputs['out_bvec'] = outputs['out_fsl'][0]
