@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:16
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-06-30 12:13:12
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-07-02 18:12:58
 
 
 def _sim_mask(in_file):
@@ -80,7 +80,7 @@ def compute_fractions(sf_vfs, tissue_vfs, max_fa=0.80):
     sfimgs = [nb.load(f) for f in sf_vfs]
     data = np.nan_to_num(nb.concat_images(sfimgs).get_data())
     data = np.sort(data)[..., ::-1]
-    data *= np.array([5, 3, 2])[np.newaxis, np.newaxis, np.newaxis, ...]
+    data *= np.array([1.5, 1., .95])[np.newaxis, np.newaxis, np.newaxis, ...]
     total_fibers = np.sum(data, axis=3)
     data[total_fibers > 0, ...] /= total_fibers[total_fibers > 0, np.newaxis]
     data *= wmvf[..., np.newaxis] * .95
@@ -225,4 +225,48 @@ def merge_first(inlist, out_file='first_merged.nii.gz'):
     nb.Nifti1Image(data, imgs[0].get_affine(),
                    imgs[0].get_header()).to_filename(out_file)
 
+    return out_file
+
+
+def mask_from_5tt(in_5tt, out_file='brainmask.nii.gz'):
+    import os.path as op
+    import nibabel as nb
+    import numpy as np
+
+    out_file = op.abspath(out_file)
+
+    im = nb.load(in_5tt)
+    hdr = im.get_header().copy()
+
+    data = np.sum(im.get_data(), axis=3)
+    data[data > 0.0] = 1
+    data[data < 1.0] = 0
+
+    hdr.set_data_dtype(np.uint8)
+    hdr.set_data_shape(data.shape)
+    nb.Nifti1Image(data.astype(np.uint8), im.get_affine(),
+                   hdr).to_filename(out_file)
+    return out_file
+
+
+def tmask_from_5tt(in_5tt, out_file='trackingmask.nii.gz'):
+    import os.path as op
+    import nibabel as nb
+    import numpy as np
+    from scipy.ndimage import binary_dilation
+
+    out_file = op.abspath(out_file)
+
+    im = nb.load(in_5tt)
+    hdr = im.get_header().copy()
+
+    data = im.get_data()[..., 2]
+    data[data > 0.0] = 1
+    data[data < 1.0] = 0
+    data = binary_dilation(data).astype(np.uint8)
+
+    hdr.set_data_dtype(np.uint8)
+    hdr.set_data_shape(data.shape)
+    nb.Nifti1Image(data.astype(np.uint8), im.get_affine(),
+                   hdr).to_filename(out_file)
     return out_file

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-01 12:02:10
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-07-02 18:11:46
 
 import os
 import os.path as op
@@ -60,8 +60,9 @@ def gen_diffantom(name='Diffantom', settings={}):
             ('outputnode.fractions', 'inputnode.fractions'),
             ('outputnode.out_mask', 'inputnode.in_mask'),
             ('outputnode.out_iso', 'inputnode.in_5tt')]),
-        (sim_ref,   trk,      [('outputnode.dwi', 'inputnode.in_dwi'),
-                               ('outputnode.out_grad', 'inputnode.in_scheme')]),
+        (sim_ref,   trk,      [
+            ('outputnode.dwi', 'inputnode.in_dwi'),
+            ('outputnode.out_grad', 'inputnode.in_scheme')]),
         (sim_mod,   trk,      [('outputnode.out_5tt', 'inputnode.in_5tt')])
     ])
     return wf
@@ -76,7 +77,7 @@ def simulate(name='SimDWI'):
         fields=['dwi', 'bvec', 'bval', 'out_mask', 'out_fods', 'out_grad']),
         name='outputnode')
 
-    sch = pe.Node(LoadSamplingScheme(bvals=[1000, 3000]), name='LoadScheme')
+    sch = pe.Node(LoadSamplingScheme(bvals=[2000]), name='LoadScheme')
     simdwi = pe.Node(PhantomasSticksSim(
         lambda1=2.2e-3, lambda2=.2e-3, snr=90, save_fods=True),
         name='SimulateDWI')
@@ -160,12 +161,12 @@ def preprocess_model(name='PrepareModel'):
 
     mskvfs = pe.MapNode(fs.ApplyMask(), iterfield=['in_file'], name='VFMsk')
 
-    denoise = pe.MapNode(Denoise(snr=100.0), name='VFDenoise',
+    denoise = pe.MapNode(Denoise(snr=90.0), name='VFDenoise',
                          iterfield=['in_file'])
     enh = pe.MapNode(SigmoidFilter(
         max_out=1.0, lower_perc=0.0),
         iterfield=['in_file', 'upper_perc'], name='VFEnhance')
-    enh.inputs.upper_perc = [0.5, 0.7, 0.8]
+    enh.inputs.upper_perc = [0.7, 0.85, 0.9]
 
     post = pe.Node(niu.Function(
         function=pu.compute_fractions, input_names=['sf_vfs', 'tissue_vfs'],
@@ -216,18 +217,33 @@ def act_workflow(name='Tractography'):
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['out_file']), name='outputnode')
 
-    resp = pe.Node(mrt3.ResponseSD(), name='EstimateResponse')
-    fod = pe.Node(mrt3.EstimateFOD(), name='EstimateFODs')
-    trk = pe.Node(mrt3.Tractography(), name='Track')
+    bmsk = pe.Node(niu.Function(
+        function=pu.mask_from_5tt, input_names=['in_5tt'],
+        output_names=['out_file']), name='ComputeBrainMask')
+
+    tmsk = pe.Node(niu.Function(
+        function=pu.tmask_from_5tt, input_names=['in_5tt'],
+        output_names=['out_file']), name='ComputeTrackingMask')
+
+    resp = pe.Node(mrt3.ResponseSD(
+        bval_scale='yes', max_sh=8), name='EstimateResponse')
+    fod = pe.Node(mrt3.EstimateFOD(
+        bval_scale='yes', max_sh=8, nthreads=0), name='EstimateFODs')
+    trk = pe.Node(mrt3.Tractography(nthreads=0), name='Track')
 
     wf = pe.Workflow(name=name)
     wf.connect([
+        (inputnode, bmsk,       [('in_5tt', 'in_5tt')]),
+        (inputnode, tmsk,       [('in_5tt', 'in_5tt')]),
         (inputnode, resp,       [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
+        (tmsk,      resp,       [('out_file', 'in_mask')]),
+        (bmsk,      fod,        [('out_file', 'in_mask')]),
         (inputnode, fod,        [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
         (resp,      fod,        [('out_file', 'response')]),
         (fod,       trk,        [('out_file', 'in_file')]),
+        (tmsk,      trk,        [('out_file', 'seed_image')]),
         (inputnode, trk,        [('in_5tt', 'act_file'),
                                  ('in_scheme', 'grad_file')]),
         (trk,       outputnode, [('out_file', 'out_file')])
