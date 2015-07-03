@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-02 18:11:46
+# @Last Modified time: 2015-07-03 15:43:54
 
 import os
 import os.path as op
@@ -215,7 +215,7 @@ def act_workflow(name='Tractography'):
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['in_dwi', 'in_scheme', 'in_5tt']), name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['out_file']), name='outputnode')
+        fields=['out_file', 'out_fa', 'out_adc']), name='outputnode')
 
     bmsk = pe.Node(niu.Function(
         function=pu.mask_from_5tt, input_names=['in_5tt'],
@@ -229,7 +229,15 @@ def act_workflow(name='Tractography'):
         bval_scale='yes', max_sh=8), name='EstimateResponse')
     fod = pe.Node(mrt3.EstimateFOD(
         bval_scale='yes', max_sh=8, nthreads=0), name='EstimateFODs')
-    trk = pe.Node(mrt3.Tractography(nthreads=0), name='Track')
+    tsr = pe.Node(mrt3.FitTensor(
+        bval_scale='yes', nthreads=0), name='EstimateTensors')
+    met = pe.Node(mrt3.TensorMetrics(
+        out_adc='adc.nii.gz', out_fa='fa.nii.gz'), name='ComputeScalars')
+    trk = pe.Node(mrt3.Tractography(
+        nthreads=0, n_tracks=int(1e8), max_length=250.), name='Track')
+
+    tdi = pe.Node(mrt3.ComputeTDI(nthreads=0, out_file='tdi.nii.gz'),
+                  name='ComputeTDI')
 
     wf = pe.Workflow(name=name)
     wf.connect([
@@ -237,7 +245,12 @@ def act_workflow(name='Tractography'):
         (inputnode, tmsk,       [('in_5tt', 'in_5tt')]),
         (inputnode, resp,       [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
-        (tmsk,      resp,       [('out_file', 'in_mask')]),
+        (bmsk,      resp,       [('out_file', 'in_mask')]),
+        (bmsk,      tsr,        [('out_file', 'in_mask')]),
+        (inputnode, tsr,        [('in_dwi', 'in_file'),
+                                 ('in_scheme', 'grad_file')]),
+        (tsr,       met,        [('out_file', 'in_file')]),
+        (bmsk,      met,        [('out_file', 'in_mask')]),
         (bmsk,      fod,        [('out_file', 'in_mask')]),
         (inputnode, fod,        [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
@@ -246,7 +259,9 @@ def act_workflow(name='Tractography'):
         (tmsk,      trk,        [('out_file', 'seed_image')]),
         (inputnode, trk,        [('in_5tt', 'act_file'),
                                  ('in_scheme', 'grad_file')]),
-        (trk,       outputnode, [('out_file', 'out_file')])
-
+        (trk,       tdi,        [('out_file', 'in_file')]),
+        (trk,       outputnode, [('out_file', 'out_file')]),
+        (met,       outputnode, [('out_fa', 'out_fa'),
+                                 ('out_adc', 'out_adc')])
     ])
     return wf
