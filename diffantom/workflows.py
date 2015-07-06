@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-03 15:43:54
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-07-06 11:47:06
 
 import os
 import os.path as op
@@ -16,6 +16,7 @@ from nipype.interfaces import fsl                    # fsl
 from nipype.interfaces import freesurfer as fs       # freesurfer
 from nipype.interfaces.dipy import Denoise
 from nipype.interfaces import mrtrix3 as mrt3
+from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
 
 import utils as pu
 from interfaces import PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter
@@ -32,7 +33,8 @@ def gen_diffantom(name='Diffantom', settings={}):
     fnames = dict(t1w='T1w_acpc_dc_restore.nii.gz',
                   fibers='fiber*.nii.gz',
                   vfractions='vfraction*.nii.gz',
-                  scheme='samples.txt')
+                  scheme='samples.txt',
+                  aparc='aparc+aseg.nii.gz')
 
     ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
 
@@ -53,7 +55,9 @@ def gen_diffantom(name='Diffantom', settings={}):
                                ('data_dir', 'base_directory')]),
         (ds,        sim_mod,  [('t1w', 'inputnode.t1w'),
                                ('fibers', 'inputnode.fibers'),
-                               ('vfractions', 'inputnode.fractions')]),
+                               ('vfractions', 'inputnode.fractions'),
+                               ('aparc', 'inputnode.parcellation')]),
+        (ds,        trk,      [('aparc', 'inputnode.aparc')]),
         (ds,        sim_ref,  [('scheme', 'inputnode.scheme')]),
         (sim_mod,   sim_ref,     [
             ('outputnode.fibers', 'inputnode.fibers'),
@@ -63,7 +67,9 @@ def gen_diffantom(name='Diffantom', settings={}):
         (sim_ref,   trk,      [
             ('outputnode.dwi', 'inputnode.in_dwi'),
             ('outputnode.out_grad', 'inputnode.in_scheme')]),
-        (sim_mod,   trk,      [('outputnode.out_5tt', 'inputnode.in_5tt')])
+        (sim_mod,   trk,      [
+            ('outputnode.out_5tt', 'inputnode.in_5tt'),
+            ('outputnode.parcellation', 'inputnode.parcellation')])
     ])
     return wf
 
@@ -102,7 +108,7 @@ def simulate(name='SimDWI'):
 
 
 def preprocess_model(name='PrepareModel'):
-    in_fields = ['t1w', 'fibers', 'fractions']
+    in_fields = ['t1w', 'fibers', 'fractions', 'parcellation']
     sgm_structures = ['L_Accu', 'R_Accu', 'L_Caud', 'R_Caud',
                       'L_Pall', 'R_Pall', 'L_Puta', 'R_Puta',
                       'L_Thal', 'R_Thal']
@@ -116,8 +122,8 @@ def preprocess_model(name='PrepareModel'):
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
                         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['fibers', 'fractions', 'out_5tt', 'out_iso', 'out_mask']),
-        name='outputnode')
+        fields=['fibers', 'fractions', 'out_5tt', 'out_iso', 'out_mask',
+                'parcellation']), name='outputnode')
 
     def _getfirst(inlist):
         return inlist[0]
@@ -172,6 +178,11 @@ def preprocess_model(name='PrepareModel'):
         function=pu.compute_fractions, input_names=['sf_vfs', 'tissue_vfs'],
         output_names=['out_sf', 'out_ts', 'out_wmmsk']), name='VFPrepare')
 
+    fixparc = pe.Node(mrt3.ReplaceFSwithFIRST(), name='FixFSaparc')
+    fixparc.inputs.in_config = op.join(
+        os.getenv('MRTRIX3_HOME', '/home/oesteban/workspace/mrtrix3'),
+        'src/dwi/tractography/connectomics/example_configs/fs_default.txt')
+
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, bet,        [('t1w', 'in_file')]),
@@ -205,7 +216,10 @@ def preprocess_model(name='PrepareModel'):
                                  ('out_ts', 'out_iso')]),
         (gen5tt,    outputnode, [('out_file', 'out_5tt')]),
         (fixtsr,    outputnode, [('out_file', 'fibers')]),
-        (reslice,   outputnode, [('out_file', 'out_mask')])
+        (reslice,   outputnode, [('out_file', 'out_mask')]),
+        (inputnode, fixparc,    [('parcellation', 'in_file'),
+                                 ('t1w', 'in_t1w')]),
+        (fixparc,   outputnode, [('out_file', 'parcellation')])
     ])
 
     return wf
@@ -213,9 +227,11 @@ def preprocess_model(name='PrepareModel'):
 
 def act_workflow(name='Tractography'):
     inputnode = pe.Node(niu.IdentityInterface(
-        fields=['in_dwi', 'in_scheme', 'in_5tt']), name='inputnode')
+        fields=['in_dwi', 'in_scheme', 'in_5tt', 'parcellation', 'aparc']),
+        name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['out_file', 'out_fa', 'out_adc']), name='outputnode')
+        fields=['out_file', 'out_fa', 'out_adc', 'out_tdi', 'out_map']),
+        name='outputnode')
 
     bmsk = pe.Node(niu.Function(
         function=pu.mask_from_5tt, input_names=['in_5tt'],
@@ -236,13 +252,26 @@ def act_workflow(name='Tractography'):
     trk = pe.Node(mrt3.Tractography(
         nthreads=0, n_tracks=int(1e8), max_length=250.), name='Track')
 
+    lc = pe.Node(mrt3.LabelConfig(), name='LabelConfig')
+    lc.inputs.out_file = 'parcellation.nii.gz'
+    lc.inputs.lut_fs = op.join(
+        os.getenv('FREESURFER_HOME'), 'FreeSurferColorLUT.txt')
+
+    mat = pe.Node(mrt3.BuildConnectome(nthreads=0), name='BuildMatrix')
+
+    # tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
     tdi = pe.Node(mrt3.ComputeTDI(nthreads=0, out_file='tdi.nii.gz'),
                   name='ComputeTDI')
+
+    bnd0 = track_bundle('Bundle_CC')
+    bnd0.inputs.inputnode.labels = [251]
 
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, bmsk,       [('in_5tt', 'in_5tt')]),
         (inputnode, tmsk,       [('in_5tt', 'in_5tt')]),
+        (inputnode, lc,         [('parcellation', 'in_file')]),
+        # (inputnode, tck2trk,    [('in_dwi', 'image_file')]),
         (inputnode, resp,       [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
         (bmsk,      resp,       [('out_file', 'in_mask')]),
@@ -260,8 +289,50 @@ def act_workflow(name='Tractography'):
         (inputnode, trk,        [('in_5tt', 'act_file'),
                                  ('in_scheme', 'grad_file')]),
         (trk,       tdi,        [('out_file', 'in_file')]),
+        (bmsk,      tdi,        [('out_file', 'reference')]),
+        # (trk,       tck2trk,    [('out_file', 'in_file')]),
+        (fod,       bnd0,       [('out_file', 'inputnode.in_fod')]),
+        (inputnode, bnd0,       [
+            ('aparc', 'inputnode.aparc'),
+            ('parcellation', 'inputnode.parcellation'),
+            ('in_5tt', 'inputnode.in_5tt'),
+            ('in_scheme', 'inputnode.in_scheme')]),
+        (trk,       mat,        [('out_file', 'in_file')]),
+        (lc,        mat,        [('out_file', 'in_parc')]),
         (trk,       outputnode, [('out_file', 'out_file')]),
         (met,       outputnode, [('out_fa', 'out_fa'),
-                                 ('out_adc', 'out_adc')])
+                                 ('out_adc', 'out_adc')]),
+        (tdi,       outputnode, [('out_file', 'out_tdi')]),
+        (mat,       outputnode, [('out_file', 'out_map')])
+    ])
+    return wf
+
+
+def track_bundle(name='BundleTrack'):
+    inputnode = pe.Node(niu.IdentityInterface(
+        fields=['in_fod', 'aparc', 'labels', 'parcellation',
+                'in_5tt', 'in_scheme']),
+        name='inputnode')
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=['out_file']),
+        name='outputnode')
+
+    msk = pe.Node(fs.Binarize(), name='Binarize')
+
+    trk = pe.Node(mrt3.Tractography(
+        nthreads=0, n_tracks=int(1e6), max_length=250.), name='Track')
+    tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
+
+    wf = pe.Workflow(name=name)
+    wf.connect([
+        (inputnode, tck2trk,    [('parcellation', 'image_file')]),
+        (inputnode, msk,        [('aparc', 'in_file'),
+                                 ('labels', 'match')]),
+        (inputnode, trk,        [('in_fod', 'in_file'),
+                                 ('in_5tt', 'act_file'),
+                                 ('in_scheme', 'grad_file')]),
+        (msk,       trk,        [('binary_file', 'seed_image')]),
+        (trk,       tck2trk,    [('out_file', 'in_file')]),
+        (tck2trk,   outputnode, [('out_file', 'out_file')])
     ])
     return wf
