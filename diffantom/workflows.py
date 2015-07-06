@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-06 11:47:06
+# @Last Modified time: 2015-07-06 19:09:08
 
 import os
 import os.path as op
@@ -264,7 +264,11 @@ def act_workflow(name='Tractography'):
                   name='ComputeTDI')
 
     bnd0 = track_bundle('Bundle_CC')
-    bnd0.inputs.inputnode.labels = [251]
+    bnd0.inputs.inputnode.seed_lbs = [251]
+
+    labels = [1002, 1012, 1014, 1026, 1027, 1028, 1032]
+    bnd0.inputs.inputnode.include_lbs = (np.array(labels) + 1000).tolist() + \
+        labels
 
     wf = pe.Workflow(name=name)
     wf.connect([
@@ -310,14 +314,15 @@ def act_workflow(name='Tractography'):
 
 def track_bundle(name='BundleTrack'):
     inputnode = pe.Node(niu.IdentityInterface(
-        fields=['in_fod', 'aparc', 'labels', 'parcellation',
-                'in_5tt', 'in_scheme']),
+        fields=['in_fod', 'aparc', 'seed_lbs', 'parcellation',
+                'in_5tt', 'in_scheme', 'include_lbs']),
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['out_file']),
         name='outputnode')
 
     msk = pe.Node(fs.Binarize(), name='Binarize')
+    inc = pe.Node(fs.Binarize(), name='BinarizeInclude')
 
     trk = pe.Node(mrt3.Tractography(
         nthreads=0, n_tracks=int(1e6), max_length=250.), name='Track')
@@ -325,13 +330,16 @@ def track_bundle(name='BundleTrack'):
 
     wf = pe.Workflow(name=name)
     wf.connect([
-        (inputnode, tck2trk,    [('parcellation', 'image_file')]),
+        (inputnode, tck2trk,    [('aparc', 'image_file')]),
+        (inputnode, inc,        [('aparc', 'in_file'),
+                                 ('include_lbs', 'match')]),
         (inputnode, msk,        [('aparc', 'in_file'),
-                                 ('labels', 'match')]),
+                                 ('seed_lbs', 'match')]),
         (inputnode, trk,        [('in_fod', 'in_file'),
                                  ('in_5tt', 'act_file'),
                                  ('in_scheme', 'grad_file')]),
         (msk,       trk,        [('binary_file', 'seed_image')]),
+        (inc,       trk,        [('binary_file', 'roi_incl')]),
         (trk,       tck2trk,    [('out_file', 'in_file')]),
         (tck2trk,   outputnode, [('out_file', 'out_file')])
     ])
