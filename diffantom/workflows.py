@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-06 19:09:08
+# @Last Modified time: 2015-07-08 11:41:20
 
 import os
 import os.path as op
@@ -34,7 +34,8 @@ def gen_diffantom(name='Diffantom', settings={}):
                   fibers='fiber*.nii.gz',
                   vfractions='vfraction*.nii.gz',
                   scheme='samples.txt',
-                  aparc='aparc+aseg.nii.gz')
+                  aparc='aparc+aseg.nii.gz',
+                  fa='fa.nii.gz')
 
     ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
 
@@ -56,7 +57,8 @@ def gen_diffantom(name='Diffantom', settings={}):
         (ds,        sim_mod,  [('t1w', 'inputnode.t1w'),
                                ('fibers', 'inputnode.fibers'),
                                ('vfractions', 'inputnode.fractions'),
-                               ('aparc', 'inputnode.parcellation')]),
+                               ('aparc', 'inputnode.parcellation'),
+                               ('fa', 'inputnode.in_fa')]),
         (ds,        trk,      [('aparc', 'inputnode.aparc')]),
         (ds,        sim_ref,  [('scheme', 'inputnode.scheme')]),
         (sim_mod,   sim_ref,     [
@@ -108,7 +110,7 @@ def simulate(name='SimDWI'):
 
 
 def preprocess_model(name='PrepareModel'):
-    in_fields = ['t1w', 'fibers', 'fractions', 'parcellation']
+    in_fields = ['t1w', 'fibers', 'fractions', 'parcellation', 'in_fa']
     sgm_structures = ['L_Accu', 'R_Accu', 'L_Caud', 'R_Caud',
                       'L_Pall', 'R_Pall', 'L_Puta', 'R_Puta',
                       'L_Thal', 'R_Thal']
@@ -183,6 +185,11 @@ def preprocess_model(name='PrepareModel'):
         os.getenv('MRTRIX3_HOME', '/home/oesteban/workspace/mrtrix3'),
         'src/dwi/tractography/connectomics/example_configs/fs_default.txt')
 
+    faden = pe.Node(Denoise(snr=90.0), name='FADenoise')
+    fapst = pe.Node(niu.Function(
+        function=pu.fa_fractions, input_names=['fa', 'sf_vfs', 'tissue_vfs'],
+        output_names=['out_sf', 'out_ts', 'out_wmmsk']), name='FAPrepare')
+
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, bet,        [('t1w', 'in_file')]),
@@ -192,6 +199,7 @@ def preprocess_model(name='PrepareModel'):
         (inputnode, resfast,    [(('fractions', _getfirst), 'reslice_like')]),
         (inputnode, fixVTK,     [(('fractions', _getfirst), 'in_ref')]),
         (inputnode, mesh2pve,   [(('fractions', _getfirst), 'reference')]),
+        (inputnode, faden,      [('in_fa', 'in_file')]),
         (bet,       reslice,    [('mask_file', 'in_file')]),
         (bet,       fast,       [('out_file', 'in_files')]),
         (fast,      resfast,    [
@@ -207,12 +215,16 @@ def preprocess_model(name='PrepareModel'):
         (selvfs,    mskvfs,     [('out', 'in_file')]),
         (sel4tt,    dwimsk,     [('out', 'in_file')]),
         (dwimsk,    mskvfs,     [('out_file', 'mask_file')]),
+        (reslice,   faden,      [('out_file', 'in_mask')]),
         (mskvfs,    denoise,    [('out_file', 'in_file')]),
         (reslice,   denoise,    [('out_file', 'in_mask')]),
         (denoise,   enh,        [('out_file', 'in_file')]),
         (enh,       post,       [('out_file', 'sf_vfs')]),
         (sel4tt,    post,       [('out', 'tissue_vfs')]),
-        (post,      outputnode, [('out_sf', 'fractions'),
+        (sel4tt,    fapst,      [('out', 'tissue_vfs')]),
+        (denoise,   fapst,      [('out_file', 'sf_vfs')]),
+        (faden,     fapst,      [('out_file', 'fa')]),
+        (fapst,     outputnode, [('out_sf', 'fractions'),
                                  ('out_ts', 'out_iso')]),
         (gen5tt,    outputnode, [('out_file', 'out_5tt')]),
         (fixtsr,    outputnode, [('out_file', 'fibers')]),
@@ -264,17 +276,23 @@ def act_workflow(name='Tractography'):
                   name='ComputeTDI')
 
     bnd0 = track_bundle('Bundle_CC')
-    bnd0.inputs.inputnode.seed_lbs = [251]
+    bnd0.inputs.inputnode.seed_lbs = [254, 255]  # 2, 41,
 
-    labels = [1002, 1012, 1014, 1026, 1027, 1028, 1032]
-    bnd0.inputs.inputnode.include_lbs = (np.array(labels) + 1000).tolist() + \
-        labels
+    # labels = [1002, 1012, 1014, 1026, 1027, 1028, 1032]
+    labels = [1002, 1012, 1026, 1027, 1028, 1032]
+    bnd0.inputs.inputnode.roi1 = labels
+    bnd0.inputs.inputnode.roi2 = (np.array(labels) + 1000).tolist()
+
+    excl = pe.Node(niu.Function(
+        function=pu.exclude_roi, input_names=['in_file'],
+        output_names=['out_file']), name='ExcludeROI')
 
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, bmsk,       [('in_5tt', 'in_5tt')]),
         (inputnode, tmsk,       [('in_5tt', 'in_5tt')]),
         (inputnode, lc,         [('parcellation', 'in_file')]),
+        (inputnode, excl,       [('aparc', 'in_file')]),
         # (inputnode, tck2trk,    [('in_dwi', 'image_file')]),
         (inputnode, resp,       [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
@@ -295,6 +313,7 @@ def act_workflow(name='Tractography'):
         (trk,       tdi,        [('out_file', 'in_file')]),
         (bmsk,      tdi,        [('out_file', 'reference')]),
         # (trk,       tck2trk,    [('out_file', 'in_file')]),
+        (excl,      bnd0,       [('out_file', 'inputnode.roi_excl')]),
         (fod,       bnd0,       [('out_file', 'inputnode.in_fod')]),
         (inputnode, bnd0,       [
             ('aparc', 'inputnode.aparc'),
@@ -315,31 +334,43 @@ def act_workflow(name='Tractography'):
 def track_bundle(name='BundleTrack'):
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['in_fod', 'aparc', 'seed_lbs', 'parcellation',
-                'in_5tt', 'in_scheme', 'include_lbs']),
+                'in_5tt', 'in_scheme', 'roi1', 'roi2', 'roi_excl']),
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['out_file']),
         name='outputnode')
 
-    msk = pe.Node(fs.Binarize(), name='Binarize')
-    inc = pe.Node(fs.Binarize(), name='BinarizeInclude')
+    msk = pe.Node(fs.Binarize(), name='SeedBinarize')
+    # msk = pe.Node(niu.Function(
+    #     function=pu.gen_seed_rois, input_names=[
+    #         'in_file', 'match', 'roi_excl'],
+    #     output_names=['out_file']), name='SeedBinarize')
+
+    inc = pe.Node(niu.Function(
+        function=pu.gen_inc_rois, output_names=['out_file'],
+        input_names=['in_file', 'roi1', 'roi2', 'seed_roi']),
+        name='IncludeBinarize')
 
     trk = pe.Node(mrt3.Tractography(
-        nthreads=0, n_tracks=int(1e6), max_length=250.), name='Track')
+        nthreads=0, n_tracks=int(5e5), max_length=150.), name='Track')
+    # trk.inputs.seed_sphere = (-1.30, 19.50, 1.3, 15.0)
     tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
 
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, tck2trk,    [('aparc', 'image_file')]),
         (inputnode, inc,        [('aparc', 'in_file'),
-                                 ('include_lbs', 'match')]),
+                                 ('roi1', 'roi1'),
+                                 ('roi2', 'roi2')]),
         (inputnode, msk,        [('aparc', 'in_file'),
                                  ('seed_lbs', 'match')]),
+        (msk,       inc,        [('binary_file', 'seed_roi')]),
         (inputnode, trk,        [('in_fod', 'in_file'),
                                  ('in_5tt', 'act_file'),
-                                 ('in_scheme', 'grad_file')]),
+                                 ('in_scheme', 'grad_file'),
+                                 ('roi_excl', 'roi_excl')]),
         (msk,       trk,        [('binary_file', 'seed_image')]),
-        (inc,       trk,        [('binary_file', 'roi_incl')]),
+        (inc,       trk,        [('out_file', 'roi_incl')]),
         (trk,       tck2trk,    [('out_file', 'in_file')]),
         (tck2trk,   outputnode, [('out_file', 'out_file')])
     ])
