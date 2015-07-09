@@ -57,7 +57,35 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 \maketitle
 
 \linenumbers
+
 \section*{Introduction}
+Fiber tracking on \gls*{dmri} data has become an important application in the in-vivo investigation
+  of the structural configuration of fiber bundles at the macro-scale.
+The final outcome of such applications, called tractography, is fundamental to gain information about
+  \gls*{wm} morphology in neurosurgical planning, post-surgery evaluations, and the study of neurological
+  diseases such as multiple sclerosis, and Alzheimer's disease \citep{chua_diffusion_2008}.
+Tractography is also crucial in the analysis of structural brain networks using graph theory.
+These analyses have been successfully applied in the definition of the unique subject-wise patterns of connectivity
+  \citep{sporns_human_2005}, the assessment of neurological diseases \citep{griffa_structural_2013}, and in the
+  study of the link of structural and functional connectivity \citep{messe_predicting_2015}.
+However, the development of the field is limited by the lack of gold standards to test and compare the
+  wide range of algorithms and processing methodologies available.
+In this work we propose \emph{diffantom}, an \emph{in-silico} dataset to assess tractography pipelines using
+  real datasets as source of whole-brain micro-structural information.
+We also provide a full software layer to produce \emph{diffantoms} from real \gls*{dmri} datasets
+  drawn from the \gls*{hcp}.
+This dataset enables the following evaluations of standard connectivity pipelines:
+\begin{itemize}
+  \item Comparison of the impact of the different diffusion sampling schemes on the local micro-structure
+  model of choice and the subsequent global tractography outcome.
+  \item Investigation of the effects of the different artifacts (noise, susceptibility-derived, Eddy-currents,
+  etc.) on the final connectivity matrix.
+  \item Determine of the \acrfull*{roc} of connectivity pipelines.
+  \item Generation of synthetic connectivity networks to test graph theory analyses.
+\end{itemize}
+
+
+\section*{Background}
 The assessment of tractography from \gls*{dmri} data and subsequent analyses is challenging due to
   the lack of a gold standard.
 Large efforts have been devoted to the development of physical phantoms
@@ -86,12 +114,6 @@ Recently, \cite{neher_fiberfox_2014} proposed \emph{FiberFox}, a visualization s
   complex geometries and their analytical description.
 Once the geometries are obtained, the software generates the corresponding \gls*{dmri} signal with a
   methodology very close to that implemented in \emph{Phantomas}.
-
-In this paper we present \emph{Diffantom}, a software layer to generate diffusion phantoms at whole-brain
-  scale and derived from real \gls*{dmri} datasets.
-Particularly, we propose the \gls*{hcp} \citep{essen_human_2012} as the source of real data.
-Finally, an example dataset is openly released along with all the necessary requirements and instructions
-  to generate custom phantoms.
 
 
 \section*{Data description}
