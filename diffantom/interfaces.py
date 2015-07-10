@@ -2,18 +2,19 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:29:58
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-01 10:59:48
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-07-10 13:06:50
 
 import os
 import os.path as op
+import glob
 import warnings
 import numpy as np
 import nibabel as nb
 from math import exp
 from nipype.interfaces.base import (TraitedSpec, File, InputMultiPath,
                                     OutputMultiPath, Undefined, traits,
-                                    isdefined, OutputMultiPath,
+                                    isdefined,
                                     CommandLineInputSpec, CommandLine,
                                     BaseInterface, BaseInterfaceInputSpec,
                                     traits)
@@ -243,4 +244,38 @@ class LoadSamplingScheme(BaseInterface):
                               op.abspath(self.inputs.out_bval)]
         outputs['out_bvec'] = outputs['out_fsl'][0]
         outputs['out_bval'] = outputs['out_fsl'][1]
+        return outputs
+
+
+class TractQuerierInputSpec(CommandLineInputSpec):
+    in_file = File(exists=True, argstr='-t %s', mandatory=True,
+                   desc='input tracks in VTK format')
+    in_parc = File(exists=True, argstr='-a %s', mandatory=True,
+                   desc='input parcellation file')
+    in_queries = File(exists=True, argstr='-q %s', mandatory=True,
+                      desc='input query file')
+
+    out_prefix = traits.Str(
+        'query', argstr='-o %s', mandatory=True, usedefault=True,
+        desc='output prefix')
+
+
+class TractQuerierOutputSpec(TraitedSpec):
+    out_file = File(exists=True, desc='the output response file')
+
+
+class TractQuerier(CommandLine):
+
+    """
+
+    """
+
+    _cmd = 'tract_querier'
+    input_spec = TractQuerierInputSpec
+    output_spec = TractQuerierOutputSpec
+
+    def _list_outputs(self):
+        outputs = self.output_spec().get()
+        outputs['out_file'] = [
+            op.abspath(f) for f in glob.glob('%s*' % self.inputs.out_prefix)]
         return outputs

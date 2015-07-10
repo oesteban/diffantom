@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:16
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-08 11:41:05
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-07-10 12:45:40
 
 
 def _sim_mask(in_file):
@@ -238,7 +238,7 @@ def sigmoid_filter(data, mask=None, a=2.00, b=85.0, maxout=2000.0):
     return newdata
 
 
-def fixvtk(in_file, in_ref, out_file=None):
+def fixvtk(in_file, in_ref, flips=True, out_file=None):
     """
     Translates surfaces to the corresponding origin
     """
@@ -257,7 +257,9 @@ def fixvtk(in_file, in_ref, out_file=None):
     aff = im.get_affine()
     mni_orig = aff[:3, 3]
     flip = np.ones(3, dtype=np.float32)
-    flip[mni_orig > 0.0] = -1.0
+
+    if flips:
+        flip[mni_orig > 0.0] = -1.0
 
     with open(in_file, 'r') as f:
         with open(out_file, 'w+') as w:
@@ -288,6 +290,28 @@ def fixvtk(in_file, in_ref, out_file=None):
 
                 pointid += 1
 
+    return out_file
+
+
+def fixorigin(in_file, out_file=None):
+    """
+    Fix origin of volume for tract_querier
+    """
+    import nibabel as nb
+    import numpy as np
+    import os.path as op
+    import subprocess as sp
+
+    if out_file is None:
+        fname, ext = op.splitext(op.basename(in_file))
+        if ext == ".gz":
+            fname, _ = op.splitext(fname)
+        out_file = op.abspath("%s_fixed.nii.gz" % fname)
+
+    im = nb.load(in_file)
+    aff = im.get_affine()
+    aff[:3, 3] = 0.0
+    nb.Nifti1Image(im.get_data(), aff, im.get_header()).to_filename(out_file)
     return out_file
 
 

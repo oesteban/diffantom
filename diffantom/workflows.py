@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-10 08:32:24
+# @Last Modified time: 2015-07-10 13:07:36
 
 import os
 import os.path as op
@@ -19,7 +19,8 @@ from nipype.interfaces import mrtrix3 as mrt3
 from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
 
 import utils as pu
-from interfaces import PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter
+from interfaces import (PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter,
+                        TractQuerier)
 from pyacwereg.interfaces import Surf2Vol
 
 
@@ -242,7 +243,8 @@ def act_workflow(name='Tractography'):
         fields=['in_dwi', 'in_scheme', 'in_5tt', 'parcellation', 'aparc']),
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['out_file', 'out_fa', 'out_adc', 'out_tdi', 'out_map']),
+        fields=['out_file', 'out_fa', 'out_adc', 'out_tdi', 'out_map',
+                'out_cst']),
         name='outputnode')
 
     bmsk = pe.Node(niu.Function(
@@ -262,7 +264,7 @@ def act_workflow(name='Tractography'):
     met = pe.Node(mrt3.TensorMetrics(
         out_adc='adc.nii.gz', out_fa='fa.nii.gz'), name='ComputeScalars')
     trk = pe.Node(mrt3.Tractography(
-        nthreads=0, n_tracks=int(1e5), max_length=250.), name='Track')
+        nthreads=0, n_tracks=int(1e7), max_length=200.), name='Track')
 
     lc = pe.Node(mrt3.LabelConfig(), name='LabelConfig')
     lc.inputs.out_file = 'parcellation.nii.gz'
@@ -273,6 +275,7 @@ def act_workflow(name='Tractography'):
 
     # tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
     tck2vtk = pe.Node(mrt3.TCK2VTK(), name='TCK2VTK')
+
     tdi = pe.Node(mrt3.ComputeTDI(nthreads=0, out_file='tdi.nii.gz'),
                   name='ComputeTDI')
 
@@ -280,13 +283,16 @@ def act_workflow(name='Tractography'):
     bnd0.inputs.inputnode.seed_lbs = [254, 255]  # 2, 41,
 
     # labels = [1002, 1012, 1014, 1026, 1027, 1028, 1032]
-    labels = [1002, 1012, 1026, 1027, 1028, 1032]
+    # labels = [1002, 1012, 1026, 1027, 1028, 1032]
+    labels = [1014, 1032]
     bnd0.inputs.inputnode.roi1 = labels
     bnd0.inputs.inputnode.roi2 = (np.array(labels) + 1000).tolist()
 
     excl = pe.Node(niu.Function(
         function=pu.exclude_roi, input_names=['in_file'],
         output_names=['out_file']), name='ExcludeROI')
+
+    cst = track_querier()
 
     wf = pe.Workflow(name=name)
     wf.connect([
@@ -329,7 +335,10 @@ def act_workflow(name='Tractography'):
         (met,       outputnode, [('out_fa', 'out_fa'),
                                  ('out_adc', 'out_adc')]),
         (tdi,       outputnode, [('out_file', 'out_tdi')]),
-        (mat,       outputnode, [('out_file', 'out_map')])
+        (mat,       outputnode, [('out_file', 'out_map')]),
+        (inputnode, cst,        [('aparc', 'inputnode.in_parc')]),
+        (tck2vtk,   cst,        [('out_file', 'inputnode.in_track')]),
+        (cst,       outputnode, [('outputnode.out_track', 'out_cst')])
     ])
     return wf
 
@@ -355,7 +364,7 @@ def track_bundle(name='BundleTrack'):
         name='IncludeBinarize')
 
     trk = pe.Node(mrt3.Tractography(
-        nthreads=0, n_tracks=int(5e5), max_length=150.), name='Track')
+        nthreads=0, n_tracks=int(1e5), max_length=100.), name='Track')
     # trk.inputs.seed_sphere = (-1.30, 19.50, 1.3, 15.0)
     tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
 
@@ -376,5 +385,33 @@ def track_bundle(name='BundleTrack'):
         (inc,       trk,        [('out_file', 'roi_incl')]),
         (trk,       tck2trk,    [('out_file', 'in_file')]),
         (tck2trk,   outputnode, [('out_file', 'out_file')])
+    ])
+    return wf
+
+
+def track_querier(name='TractQuery'):
+    inputnode = pe.Node(niu.IdentityInterface(fields=['in_track', 'in_parc']),
+                        name='inputnode')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['out_track']),
+                         name='outputnode')
+
+    toras = pe.Node(fs.MRIConvert(out_type='niigz', out_orientation='RAS'),
+                    name='ParcToRAS')
+    fixorig = pe.Node(niu.Function(
+        function=pu.fixorigin, input_names=['in_file'],
+        output_names=['out_file']), name='ParcOrig')
+
+    tq = pe.Node(TractQuerier(), name='TractQuerier')
+    tq.inputs.in_queries = op.join(
+        os.getenv('HOME'),
+        'workspace/tract_querier/doc/examples/wmql_1_cst.qry')
+
+    wf = pe.Workflow(name=name)
+    wf.connect([
+        (inputnode, toras,      [('in_parc', 'in_file')]),
+        (toras,     fixorig,    [('out_file', 'in_file')]),
+        (fixorig,   tq,         [('out_file', 'in_parc')]),
+        (inputnode, tq,         [('in_track', 'in_file')]),
+        (tq,        outputnode, [('out_file', 'out_track')])
     ])
     return wf
