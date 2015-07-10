@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-08 11:41:20
+# @Last Modified time: 2015-07-10 08:32:24
 
 import os
 import os.path as op
@@ -254,7 +254,7 @@ def act_workflow(name='Tractography'):
         output_names=['out_file']), name='ComputeTrackingMask')
 
     resp = pe.Node(mrt3.ResponseSD(
-        bval_scale='yes', max_sh=8), name='EstimateResponse')
+        bval_scale='yes', max_sh=8, nthreads=2), name='EstimateResponse')
     fod = pe.Node(mrt3.EstimateFOD(
         bval_scale='yes', max_sh=8, nthreads=0), name='EstimateFODs')
     tsr = pe.Node(mrt3.FitTensor(
@@ -262,7 +262,7 @@ def act_workflow(name='Tractography'):
     met = pe.Node(mrt3.TensorMetrics(
         out_adc='adc.nii.gz', out_fa='fa.nii.gz'), name='ComputeScalars')
     trk = pe.Node(mrt3.Tractography(
-        nthreads=0, n_tracks=int(1e8), max_length=250.), name='Track')
+        nthreads=0, n_tracks=int(1e5), max_length=250.), name='Track')
 
     lc = pe.Node(mrt3.LabelConfig(), name='LabelConfig')
     lc.inputs.out_file = 'parcellation.nii.gz'
@@ -272,6 +272,7 @@ def act_workflow(name='Tractography'):
     mat = pe.Node(mrt3.BuildConnectome(nthreads=0), name='BuildMatrix')
 
     # tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
+    tck2vtk = pe.Node(mrt3.TCK2VTK(), name='TCK2VTK')
     tdi = pe.Node(mrt3.ComputeTDI(nthreads=0, out_file='tdi.nii.gz'),
                   name='ComputeTDI')
 
@@ -294,6 +295,7 @@ def act_workflow(name='Tractography'):
         (inputnode, lc,         [('parcellation', 'in_file')]),
         (inputnode, excl,       [('aparc', 'in_file')]),
         # (inputnode, tck2trk,    [('in_dwi', 'image_file')]),
+        (inputnode, tck2vtk,    [('parcellation', 'reference')]),
         (inputnode, resp,       [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
         (bmsk,      resp,       [('out_file', 'in_mask')]),
@@ -313,6 +315,7 @@ def act_workflow(name='Tractography'):
         (trk,       tdi,        [('out_file', 'in_file')]),
         (bmsk,      tdi,        [('out_file', 'reference')]),
         # (trk,       tck2trk,    [('out_file', 'in_file')]),
+        (trk,       tck2vtk,    [('out_file', 'in_file')]),
         (excl,      bnd0,       [('out_file', 'inputnode.roi_excl')]),
         (fod,       bnd0,       [('out_file', 'inputnode.in_fod')]),
         (inputnode, bnd0,       [
