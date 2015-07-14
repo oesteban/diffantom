@@ -39,6 +39,9 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 \def\corrEmail{phd@oscaresteban.es}
 
 \input{abbreviations.tex}
+
+
+\newcommand{\e}[1]{\ensuremath{\;\cdot\,}10\ensuremath{^{#1}}}
 \begin{document}
 
 \onecolumn
@@ -121,7 +124,7 @@ Once the geometries are obtained, the software generates the corresponding \gls*
 
 \section*{Data description}
 
-\noindent\textbf{\textit{Data Generation\textcolon}}
+\noindent\textbf{\textit{Data Generation\textcolon}\label{sec:data_generation}}
 The methods to generate the data in this paper are inspired by the work of \cite{wilkins_fiber_2014} and
   described in \autoref{fig:figure1}.
 \emph{Diffantom} integrates two major improvements with respect to \citep{wilkins_fiber_2014}.
@@ -130,15 +133,46 @@ First, since we use a dataset from the \gls*{hcp} as input, data are corrected f
   corrections, and thus, generated data are affected correspondingly.
 Second improvement is a more advanced signal model to generate the phantom using
   \emph{phantomas} \citep{caruyer_phantomas_2014}.
-By default, diffusion data are generated using a scheme of 100 directions distributed in two shells with uniform
+
+In order to generate \emph{a diffantom}, the simulation inputs (see \autoref{fig:figure1}, A) are computed.
+On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,5}\}$ corresponding to the isotropic
+  compartments that will be simulated.
+The isotropic fraction maps use the \emph{5TT format} established with \emph{MRTrix3} \citep{tournier_mrtrix_2012}
+  that describes the structure of the brain in the following order: \gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf},
+  and abnormal tissue.
+Since we simulated a healthy subject, the last fraction map is omitted.
+On the other hand, the anisotropic compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
+  of three single fiber populations per voxel along with their corresponding direction maps $\{V_{1\,\cdots\,3}\}$.
+The process to obtain these inputs is described as follows:
+1) The fiber orientation maps $\{V_{1\,\cdots\,3}\}$ and their corresponding single-fiber fraction maps are
+  obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}
+  on the \gls*{dmri} data of a certain \gls*{hcp} subject.
+2) We obtain a \gls*{fa} map after fitting a tensor model with \emph{MRTrix3}.
+3) The original single-fiber fractions and the \gls*{fa} map are smoothed with a non-local means filter included
+  in \emph{dipy} \citep{garyfallis_dipy_2011}.
+4) By combining with \emph{MRTrix} the volume fraction maps computed with FSL FAST \citep{zhang_segmentation_2001} and
+  FSL FIRST \citep{patenaude_bayesian_2011}, we obtain the macro-structural 5TT map of the subject.
+5) The objects obtained in the previous steps are combined as described in the \nameref{sec:appendix} to generate the
+  outcome presented in \autoref{fig:figure1}, box A.
+
+Once a micro-structural model of the volume has been synthesized, a map of \glspl{fod} is computed using spherical
+  convolution of the single fiber response and the fiber orientation maps $\{V_{1\,\cdots\,3}\}$, weighted by the
+  corresponding single-fiber fractions $\{F_{1\,\cdots\,3}\}$.
+The single fiber response is {\color{red} (Manu, please help me on define this)}, with $D_{\parallel}=$ 2.2\e{-3}
+  and $D_{\bot}=$ 0.2\e{-3} [mm s$^{-1}$].
+The resulting \glspl{fod} map is then combined with the isotropic compartments corresponding to $\{T_{1\,\cdots\,5}\}$
+  before generating the signal using \emph{phantomas} \citep{caruyer_phantomas_2014}.
+By default, diffusion data are generated using a scheme of 100 directions distributed in one shell with uniform
   coverage \citep{caruyer_design_2013}.
-Custom schemes can be generated supplying the tables of corresponding $b$-vectors and $b$-values.
+Custom one- or multi-shell schemes can be generated supplying the tables of corresponding $b$-vectors and $b$-values.
 Rician noise is also included in \emph{phantomas}, and can be set by the user.
 The default value for \gls*{snr} is pre-set to 90.0.
-\Gls*{csf} was simulated with a unique compartment with isotropic diffusivity $D_{CSF}$ of 3.0$\times$10$^{-6}$ [mm s$^{-1}$].
-Conversely, \Gls*{wm} and \gls*{gm} included one isotropic compartment with $D_{WM} =$ and $D_{GM} =$, respectively.
-Single fiber contributions had $D_{\parallel}=$ and $D_{\bot}=$.
-All these values for diffusivity can be modified by the user for custom settings.
+\Gls*{csf} was simulated with a unique compartment with isotropic diffusivity $D_{CSF}$ of 3.0\e{-3} [mm s$^{-1}$].
+Conversely, \Gls*{wm} and \gls*{gm} included one isotropic compartment with $D_{WM} =$ 2.0\e{-4}, $D_{cGM} =$ 7.0\e{-4}
+  and $D_{dGM} =$ 9.0\e{-4}, respectively [mm s$^{-1}$].
+All these values for diffusivity (and the corresponding to the single-fiber response) can be modified by the user with
+  custom settings.
+
 
 \noindent\textbf{\textit{Interpretation and use\textcolon}}
 In order to release a reproducible dataset, along with an usable software to create custom data,
@@ -183,14 +217,17 @@ Lastly, since the gradient scheme can be set by the user, \emph{diffantom} can b
   \emph{b-matrix} of the \gls*{hcp} to any target scheme.
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
-\emph{Diffantom} is a software layer to be applied on \acrfull*{hcp} datasets, that is openly and freely distributed
-  along with an example dataset.
+\emph{Diffantom} is a digital phantom generated from a dataset belonging to the \acrlong*{hcp}, and the software layer to
+  simulate it.
+A first \emph{diffantom} is presented here to be openly and freely distributed along with the necessary software to reproduce
+  this dataset and generate new \emph{diffantoms}.
 
 
 \section*{Data Sharing}
-The example dataset is available under the \gls*{cc0} in {\color{red} (dryad?)}.
-Source code of \emph{diffantom} is available at \url{https://github.com/oesteban/phantomas} under an MIT licence.
-\emph{Phantomas} is available in \url{https://github.com/ecaruyer/phantomas/} under the revised-BSD licence.
+The first \emph{diffantom} is available under the \gls*{cc0} in {\color{red} (dryad?)}.
+The associated software to ``\emph{diffantomize}'' real \gls*{dmri} data is available at \url{https://github.com/oesteban/diffantom}
+  under an MIT licence.
+\emph{Phantomas} is available in \url{https://github.com/ecaruyer/phantomas} under the revised-BSD licence.
 
 \section*{Disclosure/Conflict-of-Interest Statement}
 
@@ -222,24 +259,46 @@ This study was supported by the Spanish Ministry of Science and Innovation
 
 \glsresetall
 
+\section*{Appendix}\label{sec:appendix}
+Let $\{T'_{1\,\cdots\,5}\}$ be the set of original fractions maps obtained with the combined use of FAST and FIRST, FA the
+  \gls*{fa} map obtained from the original \gls*{dmri} data, and $\{V_{1\,\cdots\,3}, F'_{1\,\cdots\,3}\}$ the direction
+  maps $V_i$ of single-fibers with their estimated volume fractions $F'_i$ calculated with BEDPOSTX.
+The final $\{T_{1\,\cdots\,5}\}$ maps of isotropic fractions are computed as follows:
+
+  \begin{align*}
+  T_1 &= (1.0-w_{cgm}) \cdot T'_1 \\
+  T_2 &= (1.0-w_{dgm}) \cdot T'_2 \\
+  T_3 &= (1.0-w_{wm}) \cdot T'_3 \\
+  T_4 &= T'_4 \\
+  T_5 &= 0.0
+  \end{align*}
+where $w_{\{cgm, dgm, wm\}}$ are weighing factors of anisotropic diffusion for each tissue
+  (defaults are $w_{cgm} =$ 25\%, $w_{dgm} =$ 50\%, $w_{cgm} =$ 95\%).
+The final $\{F_{1\,\cdots\,3}\}$ maps are computed as follows:
+
+\begin{align*}
+F_1 &= w_{wm} \cdot T_2 \cdot \text{FA} + w_{f1} (w_{cgm} \cdot T_1 + w_{dgm} \cdot T_2) \\
+F_2 &= w_{wm} \cdot T_2 - (F_1 + F_3) + w_{f2} (w_{cgm} \cdot T_1 + w_{dgm} \cdot T_2) \\
+F_3 &= w_{wm} \cdot F'_3 + w_{f3} (w_{cgm} \cdot T_1 + w_{dgm} \cdot T_2)
+\end{align*}
+where $w_{\{f1, f2, f3\}}$ are the contributions of the \gls*{gm} compartments to each single-fiber population.
+By default: $w_{f1} = $ 48\%, $w_{f2} = $ 37\%, $w_{f3} = $ 15\%.
+Finally, the resulting maps are normalized to fulfill $\sum_i T_i + \sum_i F_i = 1.0$.
+
+\newpage
 \section*{Figures}
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[width=\linewidth]{figures/figure01}
+\includegraphics[width=\linewidth]{figures/figure01A}
+\includegraphics[width=\linewidth]{figures/figure01B}
 \end{center}
 \textbf{\refstepcounter{figure}\label{fig:figure1} Figure \arabic{figure}. }%
-{\emph{Diffantom} is a software layer wrapping the \acrfull{hcp} datasets to generate whole-brain diffusion \gls*{dmri} data.
-First, the tissue fraction maps $\{T_1, T_2, T_3\}$ are computed using FSL FAST \citep{zhang_segmentation_2001}.
-Second, the fiber orientation maps $\{V_1, V_2, V_3\}$ and corresponding volume fraction maps $\{F_1, F_2, F_3\}$ are
-  obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}.
-The third step takes the fiber orientations $\{V_1, V_2, V_3\}$ and their weights $\{F_1, F_2, F_3\}$ to compute the
-  corresponding \glspl{fod} using spherical convolution of the single fiber response with each fiber orientation at
-  each voxel.
-The resulting \glspl{fod} map is then combined with three isotropic compartments corresponding to $\{T_1, T_2, T'_3\}$
-  before generating the signal using \emph{phantomas} \citep{caruyer_phantomas_2014}.
-The fraction map $T'_3 = T_3 - \sum F_i$ is the remaining isotropic fraction across the \gls*{wm} tissue map.
-Finally, data can be used to compute the whole-brain tractography, for instance.}
+{\textbf{Generation of \emph{diffantoms}:} First, a micro-structural model is generated as described
+  in the \nameref{sec:data_generation} subsection.
+This micro-structural model is feeded into a simulation block that generates the final \gls*{dmri} dataset
+  as described in the second block.
+}
 \end{figure}
 
 \begin{figure}[h!]
@@ -252,7 +311,10 @@ The dataset can be used to test algorithms and pipelines against a perturbation 
   introduced in \emph{diffantom}.
 Perturbations can model typical artifacts found in \gls*{dmri} datasets or pathological conditions
   such as a tumor.
-\textbf{B1, B2, B3. Tractograms of fundamental fiber bundles}.
+\textbf{B1. Tractogram of fibers crossing slice 56 of the \emph{diffantom}} represented over that corresponding
+  slice of the \emph{b0} volume. \textbf{B2. Segmentation of some fiber bundles}: in blue color is represented
+  the right \gls*{cst}, in red the left \gls*{cst}, and in green the forceps minor.
+  The box includes the slice 56 of the \emph{b0} and the light gray shadow is the pial surface.
 }
 \end{figure}
 
