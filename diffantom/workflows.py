@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-10 13:07:36
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-07-13 14:28:28
 
 import os
 import os.path as op
@@ -36,7 +36,8 @@ def gen_diffantom(name='Diffantom', settings={}):
                   vfractions='vfraction*.nii.gz',
                   scheme='samples.txt',
                   aparc='aparc+aseg.nii.gz',
-                  fa='fa.nii.gz')
+                  fa='fa.nii.gz',
+                  wmparc='wmparc.nii.gz')
 
     ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
 
@@ -60,7 +61,8 @@ def gen_diffantom(name='Diffantom', settings={}):
                                ('vfractions', 'inputnode.fractions'),
                                ('aparc', 'inputnode.parcellation'),
                                ('fa', 'inputnode.in_fa')]),
-        (ds,        trk,      [('aparc', 'inputnode.aparc')]),
+        (ds,        trk,      [('aparc', 'inputnode.aparc'),
+                               ('wmparc', 'inputnode.wmparc')]),
         (ds,        sim_ref,  [('scheme', 'inputnode.scheme')]),
         (sim_mod,   sim_ref,     [
             ('outputnode.fibers', 'inputnode.fibers'),
@@ -240,7 +242,8 @@ def preprocess_model(name='PrepareModel'):
 
 def act_workflow(name='Tractography'):
     inputnode = pe.Node(niu.IdentityInterface(
-        fields=['in_dwi', 'in_scheme', 'in_5tt', 'parcellation', 'aparc']),
+        fields=['in_dwi', 'in_scheme', 'in_5tt', 'parcellation', 'aparc',
+                'wmparc']),
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['out_file', 'out_fa', 'out_adc', 'out_tdi', 'out_map',
@@ -264,7 +267,7 @@ def act_workflow(name='Tractography'):
     met = pe.Node(mrt3.TensorMetrics(
         out_adc='adc.nii.gz', out_fa='fa.nii.gz'), name='ComputeScalars')
     trk = pe.Node(mrt3.Tractography(
-        nthreads=0, n_tracks=int(1e7), max_length=200.), name='Track')
+        nthreads=0, n_tracks=int(1e6), max_length=200.), name='Track')
 
     lc = pe.Node(mrt3.LabelConfig(), name='LabelConfig')
     lc.inputs.out_file = 'parcellation.nii.gz'
@@ -273,26 +276,40 @@ def act_workflow(name='Tractography'):
 
     mat = pe.Node(mrt3.BuildConnectome(nthreads=0), name='BuildMatrix')
 
-    # tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
+    tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
     tck2vtk = pe.Node(mrt3.TCK2VTK(), name='TCK2VTK')
 
     tdi = pe.Node(mrt3.ComputeTDI(nthreads=0, out_file='tdi.nii.gz'),
                   name='ComputeTDI')
 
-    bnd0 = track_bundle('Bundle_CC')
-    bnd0.inputs.inputnode.seed_lbs = [254, 255]  # 2, 41,
-
+    bnd0 = track_bundle('Bundle_FMinor', incl_rois=True)
+    bnd0.inputs.inputnode.seed_lbs = [254, 255,
+                                      3014, 4014,
+                                      3026, 4026]  # 2, 41,
     # labels = [1002, 1012, 1014, 1026, 1027, 1028, 1032]
     # labels = [1002, 1012, 1026, 1027, 1028, 1032]
-    labels = [1014, 1032]
+    labels = [1014, 1032, 3032, 3027]
     bnd0.inputs.inputnode.roi1 = labels
     bnd0.inputs.inputnode.roi2 = (np.array(labels) + 1000).tolist()
 
     excl = pe.Node(niu.Function(
         function=pu.exclude_roi, input_names=['in_file'],
-        output_names=['out_file']), name='ExcludeROI')
+        output_names=['out_file']), name='ExcludeFMinor')
 
-    cst = track_querier()
+    bnd1 = track_bundle('Bundle_CST', incl_rois=False)
+    bnd1.inputs.inputnode.seed_lbs = [16, 28, 60, 5001, 5002]
+    exclCST = pe.Node(
+        fs.Binarize(match=range(251, 256) + [7, 46]),
+        name='ExcludeCST')
+
+    cst = track_querier('TractQuery_CST')
+    cst.inputs.inputnode.in_qry = op.join(
+        os.getenv('HOME'),
+        'workspace/tract_querier/doc/examples/wmql_1_cst.qry')
+    fcm = track_querier('TractQuery_FCMinor')
+    fcm.inputs.inputnode.in_qry = op.join(
+        os.getenv('HOME'),
+        'workspace/tract_querier/doc/examples/wmql_4_forcepsminor.qry')
 
     wf = pe.Workflow(name=name)
     wf.connect([
@@ -300,7 +317,7 @@ def act_workflow(name='Tractography'):
         (inputnode, tmsk,       [('in_5tt', 'in_5tt')]),
         (inputnode, lc,         [('parcellation', 'in_file')]),
         (inputnode, excl,       [('aparc', 'in_file')]),
-        # (inputnode, tck2trk,    [('in_dwi', 'image_file')]),
+        (inputnode, tck2trk,    [('in_dwi', 'image_file')]),
         (inputnode, tck2vtk,    [('parcellation', 'reference')]),
         (inputnode, resp,       [('in_dwi', 'in_file'),
                                  ('in_scheme', 'grad_file')]),
@@ -320,15 +337,25 @@ def act_workflow(name='Tractography'):
                                  ('in_scheme', 'grad_file')]),
         (trk,       tdi,        [('out_file', 'in_file')]),
         (bmsk,      tdi,        [('out_file', 'reference')]),
-        # (trk,       tck2trk,    [('out_file', 'in_file')]),
+        (trk,       tck2trk,    [('out_file', 'in_file')]),
         (trk,       tck2vtk,    [('out_file', 'in_file')]),
-        (excl,      bnd0,       [('out_file', 'inputnode.roi_excl')]),
-        (fod,       bnd0,       [('out_file', 'inputnode.in_fod')]),
         (inputnode, bnd0,       [
-            ('aparc', 'inputnode.aparc'),
+            ('wmparc', 'inputnode.wmparc'),
             ('parcellation', 'inputnode.parcellation'),
             ('in_5tt', 'inputnode.in_5tt'),
             ('in_scheme', 'inputnode.in_scheme')]),
+        (excl,      bnd0,       [('out_file', 'inputnode.roi_excl')]),
+        (fod,       bnd0,       [('out_file', 'inputnode.in_fod')]),
+
+        (inputnode, bnd1,       [
+            ('wmparc', 'inputnode.wmparc'),
+            ('parcellation', 'inputnode.parcellation'),
+            ('in_5tt', 'inputnode.in_5tt'),
+            ('in_scheme', 'inputnode.in_scheme')]),
+        (inputnode, exclCST,    [('wmparc', 'in_file')]),
+        (exclCST,   bnd1,       [('binary_file', 'inputnode.roi_excl')]),
+        (fod,       bnd1,       [('out_file', 'inputnode.in_fod')]),
+
         (trk,       mat,        [('out_file', 'in_file')]),
         (lc,        mat,        [('out_file', 'in_parc')]),
         (trk,       outputnode, [('out_file', 'out_file')]),
@@ -336,62 +363,73 @@ def act_workflow(name='Tractography'):
                                  ('out_adc', 'out_adc')]),
         (tdi,       outputnode, [('out_file', 'out_tdi')]),
         (mat,       outputnode, [('out_file', 'out_map')]),
-        (inputnode, cst,        [('aparc', 'inputnode.in_parc')]),
-        (tck2vtk,   cst,        [('out_file', 'inputnode.in_track')]),
-        (cst,       outputnode, [('outputnode.out_track', 'out_cst')])
+        (inputnode, fcm,        [('wmparc', 'inputnode.in_parc')]),
+        (bnd0,      fcm,        [
+            ('outputnode.out_file', 'inputnode.in_track')]),
+        (inputnode, cst,        [('wmparc', 'inputnode.in_parc')]),
+        (bnd1,      cst,        [
+            ('outputnode.out_file', 'inputnode.in_track')]),
+        (cst,       outputnode, [('outputnode.out_track', 'out_cst')]),
+        (fcm,       outputnode, [('outputnode.out_track', 'out_fcm')]),
+        (tck2trk,   outputnode, [('out_file', 'out_trk')])
     ])
     return wf
 
 
-def track_bundle(name='BundleTrack'):
-    inputnode = pe.Node(niu.IdentityInterface(
-        fields=['in_fod', 'aparc', 'seed_lbs', 'parcellation',
-                'in_5tt', 'in_scheme', 'roi1', 'roi2', 'roi_excl']),
-        name='inputnode')
+def track_bundle(name='BundleTrack', incl_rois=True):
+    infields = ['in_fod', 'wmparc', 'seed_lbs', 'parcellation',
+                'in_5tt', 'in_scheme', 'roi_excl']
+
+    if incl_rois:
+        infields += ['roi1', 'roi2']
+        inc = pe.Node(niu.Function(
+            function=pu.gen_inc_rois, output_names=['out_file'],
+            input_names=['in_file', 'roi1', 'roi2', 'seed_roi']),
+            name='IncludeBinarize')
+
+    msk = pe.Node(fs.Binarize(), name='SeedBinarize')
+    trk = pe.Node(mrt3.Tractography(
+        nthreads=0, n_tracks=int(1e5), max_length=100.), name='Track')
+    tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
+    tck2vtk = pe.Node(mrt3.TCK2VTK(), name='TCK2VTK')
+
+    # Build workflow
+    inputnode = pe.Node(niu.IdentityInterface(fields=infields),
+                        name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['out_file']),
         name='outputnode')
-
-    msk = pe.Node(fs.Binarize(), name='SeedBinarize')
-    # msk = pe.Node(niu.Function(
-    #     function=pu.gen_seed_rois, input_names=[
-    #         'in_file', 'match', 'roi_excl'],
-    #     output_names=['out_file']), name='SeedBinarize')
-
-    inc = pe.Node(niu.Function(
-        function=pu.gen_inc_rois, output_names=['out_file'],
-        input_names=['in_file', 'roi1', 'roi2', 'seed_roi']),
-        name='IncludeBinarize')
-
-    trk = pe.Node(mrt3.Tractography(
-        nthreads=0, n_tracks=int(1e5), max_length=100.), name='Track')
-    # trk.inputs.seed_sphere = (-1.30, 19.50, 1.3, 15.0)
-    tck2trk = pe.Node(TCK2TRK(), name='TCK2TRK')
-
     wf = pe.Workflow(name=name)
     wf.connect([
-        (inputnode, tck2trk,    [('aparc', 'image_file')]),
-        (inputnode, inc,        [('aparc', 'in_file'),
-                                 ('roi1', 'roi1'),
-                                 ('roi2', 'roi2')]),
-        (inputnode, msk,        [('aparc', 'in_file'),
+        (inputnode, tck2trk,    [('wmparc', 'image_file')]),
+        (inputnode, tck2vtk,    [('wmparc', 'reference')]),
+        (inputnode, msk,        [('wmparc', 'in_file'),
                                  ('seed_lbs', 'match')]),
-        (msk,       inc,        [('binary_file', 'seed_roi')]),
         (inputnode, trk,        [('in_fod', 'in_file'),
                                  ('in_5tt', 'act_file'),
                                  ('in_scheme', 'grad_file'),
                                  ('roi_excl', 'roi_excl')]),
         (msk,       trk,        [('binary_file', 'seed_image')]),
-        (inc,       trk,        [('out_file', 'roi_incl')]),
         (trk,       tck2trk,    [('out_file', 'in_file')]),
-        (tck2trk,   outputnode, [('out_file', 'out_file')])
+        (trk,       tck2vtk,    [('out_file', 'in_file')]),
+        (tck2vtk,   outputnode, [('out_file', 'out_file')])
     ])
+
+    if incl_rois:
+        wf.connect([
+            (inputnode, inc,        [('wmparc', 'in_file'),
+                                     ('roi1', 'roi1'),
+                                     ('roi2', 'roi2')]),
+            (msk,       inc,        [('binary_file', 'seed_roi')]),
+            (inc,       trk,        [('out_file', 'roi_incl')])
+        ])
+
     return wf
 
 
 def track_querier(name='TractQuery'):
-    inputnode = pe.Node(niu.IdentityInterface(fields=['in_track', 'in_parc']),
-                        name='inputnode')
+    inputnode = pe.Node(niu.IdentityInterface(
+        fields=['in_track', 'in_parc', 'in_qry']), name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(fields=['out_track']),
                          name='outputnode')
 
@@ -402,16 +440,14 @@ def track_querier(name='TractQuery'):
         output_names=['out_file']), name='ParcOrig')
 
     tq = pe.Node(TractQuerier(), name='TractQuerier')
-    tq.inputs.in_queries = op.join(
-        os.getenv('HOME'),
-        'workspace/tract_querier/doc/examples/wmql_1_cst.qry')
 
     wf = pe.Workflow(name=name)
     wf.connect([
         (inputnode, toras,      [('in_parc', 'in_file')]),
         (toras,     fixorig,    [('out_file', 'in_file')]),
         (fixorig,   tq,         [('out_file', 'in_parc')]),
-        (inputnode, tq,         [('in_track', 'in_file')]),
+        (inputnode, tq,         [('in_track', 'in_file'),
+                                 ('in_qry', 'in_queries')]),
         (tq,        outputnode, [('out_file', 'out_track')])
     ])
     return wf

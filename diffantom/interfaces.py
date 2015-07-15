@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:29:58
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-10 13:06:50
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-07-13 11:47:13
 
 import os
 import os.path as op
@@ -261,7 +261,8 @@ class TractQuerierInputSpec(CommandLineInputSpec):
 
 
 class TractQuerierOutputSpec(TraitedSpec):
-    out_file = File(exists=True, desc='the output response file')
+    out_file = OutputMultiPath(File(exists=True),
+                               desc='the output response file')
 
 
 class TractQuerier(CommandLine):
