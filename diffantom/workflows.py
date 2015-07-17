@@ -128,7 +128,7 @@ def preprocess_model(name='PrepareModel'):
                         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['fibers', 'fractions', 'out_5tt', 'out_iso', 'out_mask',
-                'parcellation']), name='outputnode')
+                'parcellation', 't1w_brain']), name='outputnode')
 
     def _getfirst(inlist):
         return inlist[0]
@@ -229,6 +229,7 @@ def preprocess_model(name='PrepareModel'):
         (faden,     fapst,      [('out_file', 'fa')]),
         (fapst,     outputnode, [('out_sf', 'fractions'),
                                  ('out_ts', 'out_iso')]),
+        (bet,       outputnode, [('out_file', 't1w_brain')]),
         (gen5tt,    outputnode, [('out_file', 'out_5tt')]),
         (fixtsr,    outputnode, [('out_file', 'fibers')]),
         (reslice,   outputnode, [('out_file', 'out_mask')]),
