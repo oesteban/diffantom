@@ -186,7 +186,7 @@ def preprocess_model(name='PrepareModel'):
     fixparc = pe.Node(mrt3.ReplaceFSwithFIRST(), name='FixFSaparc')
     fixparc.inputs.in_config = op.join(
         os.getenv('MRTRIX3_HOME', '/home/oesteban/workspace/mrtrix3'),
-        'src/dwi/tractography/connectomics/example_configs/fs_default.txt')
+        'src/connectome/config/fs_default.txt')
 
     faden = pe.Node(Denoise(snr=90.0), name='FADenoise')
     fapst = pe.Node(niu.Function(
