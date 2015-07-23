@@ -71,8 +71,8 @@ Fiber tracking on \gls*{dmri} data has become an important application for the i
 The final outcome of such applications, called tractography, is fundamental to gain information about
   \gls*{wm} morphology in many clinical routines like neurosurgical planning \citep{golby_interactive_2011},
   post-surgery evaluations \citep{toda_utility_2014},
-  and the study of neurological diseases such as multiple sclerosis and Alzheimer's disease
-  \citep{chua_diffusion_2008}.
+  and the study of neurological diseases as in \citep{chua_diffusion_2008} addressing multiple sclerosis and
+  Alzheimer's disease.
 Tractography is also crucial in the analysis of structural brain networks using graph theory.
 These analyses have been successfully applied in the definition of the unique subject-wise patterns of connectivity
   \citep{sporns_human_2005}, the assessment of neurological diseases \citep{griffa_structural_2013}, and in the
@@ -104,8 +104,8 @@ Large efforts have been devoted to the development of physical phantoms
   so-called \emph{FiberCup} phantom \citep{poupon_new_2008,fillard_quantitative_2011}.
 These phantoms are appropriate to evaluate the angular resolution in fiber crossings and accuracy of
   direction-independent scalar parameters in very simplistic geometries.
-Since the complexity of whole-brain tractography is unaccountable with current materials and proposed
-  methodologies to build physical phantoms, digital simulations are increasingly popular.
+Digital simulations are increasingly popular because the complexity of whole-brain tractography
+  can not be accounted for with current materials and proposed methodologies to build physical phantoms.
 Early digital phantoms also started with simulation of simple geometries
   \citep{basser_in_2000,goessl_fiber_2002,tournier_limitations_2002,leemans_mathematical_2005}
   to evaluate resolution of fiber crossings.
@@ -138,7 +138,7 @@ First, since we use a dataset from the \gls*{hcp} as input, data are corrected f
 Second improvement is a more advanced signal model to generate the phantom using
   \emph{Phantomas} \citep{caruyer_Phantomas_2014}.
 
-The simulation process begins with generating a microstructural model from real data (\autoref{fig:figure1}).
+The simulation process is started by generating a microstructural model from real data (\autoref{fig:figure1}).
 On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,5}\}$ corresponding to the free-diffusion
   compartments that will be simulated.
 These isotropic fraction maps use the \emph{5TT format} established with the latest version 3.0 of
@@ -148,19 +148,18 @@ Since we simulate a healthy subject, the last fraction map is empty and can be o
 On the other hand, the hindered-diffusion compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
   of three single fiber populations per voxel along with their corresponding direction maps $\{V_{1\,\cdots\,3}\}$.
 
-The process to obtain the microstructural model is described as follows:
+The process to obtain the microstructural model can be described like follows:
 1) The fiber orientation maps $\{V_{1\,\cdots\,3}\}$ and their corresponding fiber-fraction maps are
   obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}
   on the \gls*{dmri} data of a certain \gls*{hcp} subject.
-2) We obtain a \gls*{fa} map after fitting a tensor model with \emph{MRTrix}.
+2) A \gls*{fa} map is obtained after fitting a tensor model with \emph{MRTrix}.
 3) The original fiber-fractions and the \gls*{fa} map are smoothed with a non-local means filter included
   in \emph{dipy} \citep{garyfallis_dipy_2011}.
-4) By combining with \emph{MRTrix} the volume fraction maps computed with FSL FAST \citep{zhang_segmentation_2001} and
-  FSL FIRST \citep{patenaude_bayesian_2011}, we obtain the macro-structural 5TT map of the subject.
+4) The macrostructural 5TT map is extracted from the \acrlong*{t1} image of the subject, using \emph{MRTrix} tools.
 5) The objects obtained in the previous steps are combined as described in the \nameref{sec:appendix} to generate the
-  microstructural model, presented in \autoref{fig:figure1} box A.
+  microstructural model, presented in \autoref{fig:figure1}-A.
 
-Once a micro-structural model of the volume has been synthesized, a map of \glspl{fod} is computed using spherical
+Once a microstructural model of the volume has been synthesized, a map of \glspl{fod} is computed using spherical
   convolution of the single fiber response and the fiber orientation maps $\{V_{1\,\cdots\,3}\}$, weighted by the
   corresponding fiber-fractions $\{F_{1\,\cdots\,3}\}$.
 A close-up showing how the \glspl{fod} map looks is presented in \autoref{fig:figure1}.
@@ -223,7 +222,7 @@ Therefore, \emph{diffantom} and \emph{FiberFox} are complementary as the hypothe
 Moreover, \emph{diffantom} does not require costly manual segmentation of bundles, highly demanding in terms of physiology
   expertise and operation time.
 This facilitates the use of \emph{diffantom} as a factory of whole-brain diffusion phantoms.
-Lastly, since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
+Finally, since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
   \emph{b-matrix} of the \gls*{hcp} to any target scheme.
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
