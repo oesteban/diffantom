@@ -66,10 +66,10 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 \linenumbers
 
 \section*{Introduction}
-Fiber tracking on \gls*{dmri} data has become an important application in the in-vivo investigation
+Fiber tracking on \gls*{dmri} data has become an important application for the in-vivo investigation
   of the structural configuration of fiber bundles at the macro-scale.
 The final outcome of such applications, called tractography, is fundamental to gain information about
-  \gls*{wm} morphology in neurosurgical planning \citep{golby_interactive_2011},
+  \gls*{wm} morphology in many clinical routines like neurosurgical planning \citep{golby_interactive_2011},
   post-surgery evaluations \citep{toda_utility_2014},
   and the study of neurological diseases such as multiple sclerosis and Alzheimer's disease
   \citep{chua_diffusion_2008}.
@@ -77,17 +77,17 @@ Tractography is also crucial in the analysis of structural brain networks using 
 These analyses have been successfully applied in the definition of the unique subject-wise patterns of connectivity
   \citep{sporns_human_2005}, the assessment of neurological diseases \citep{griffa_structural_2013}, and in the
   study of the link between structural and functional connectivity \citep{messe_predicting_2015}.
-However, the development of the field is limited by the lack of gold standards to test and compare the
-  wide range of algorithms and processing methodologies available.
+However, the development of the field is limited by the lack of a gold standard to test and compare the
+  wide range of methodologies available for processing and analyzing \gls*{dmri}.
 In this report we present \emph{diffantom}, an \emph{in-silico} dataset to assess tractography pipelines using
   real data as source of whole-brain microstructural information.
 We also provide a full software layer to produce \emph{diffantoms} from real \gls*{dmri} datasets
   drawn from the \gls*{hcp}.
-The \emph{diffantom} enables the following evaluations of standard connectivity pipelines:
+The \emph{diffantom} enables the following evaluations of connectivity pipelines:
 \begin{itemize}
-  \item Comparisons of the impact of different diffusion sampling schemes on the local micro-structure
-  model of choice and the subsequent global tractography outcome.
-  \item Investigations on the effects of the different artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
+  \item Studies on the impact of different diffusion sampling schemes on the local micro-structure
+  model of choice and on the subsequent global tractography outcome.
+  \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
     susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at both local and global levels.
   \item Characterizing the \acrfull*{roc} of connectivity pipelines.
   \item Generation of synthetic connectivity networks to test graph theory analyses.
@@ -106,7 +106,7 @@ These phantoms are appropriate to evaluate the angular resolution in fiber cross
   direction-independent scalar parameters in very simplistic geometries.
 Since the complexity of whole-brain tractography is unaccountable with current materials and proposed
   methodologies to build physical phantoms, digital simulations are increasingly popular.
-Early digital phantoms started with simulation of simple geometries as well
+Early digital phantoms also started with simulation of simple geometries
   \citep{basser_in_2000,goessl_fiber_2002,tournier_limitations_2002,leemans_mathematical_2005}
   to evaluate resolution of fiber crossings.
 These tools generally implemented the multi-tensor model \citep{alexander_analysis_2001,tuch_high_2002}
@@ -144,7 +144,7 @@ On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,
 These isotropic fraction maps use the \emph{5TT format} established with the latest version 3.0 of
   \emph{MRTrix} \citep{tournier_mrtrix_2012}, that describes the structure of the brain in the following
   order: \gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue.
-Since we simulated a healthy subject, the last fraction map is empty and can be omitted.
+Since we simulate a healthy subject, the last fraction map is empty and can be omitted.
 On the other hand, the hindered-diffusion compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
   of three single fiber populations per voxel along with their corresponding direction maps $\{V_{1\,\cdots\,3}\}$.
 
@@ -206,7 +206,7 @@ The study of this phenomena \citep{esteban_simulationbased_2014} led us to desig
 Whole-brain, realistic \gls*{dmri} phantoms are necessary in the developing field of structural
   connectomics.
 The \emph{diffantom} is a derivative of \citep{wilkins_fiber_2014} in terms of methodology for
-  simulation with two major improvements: the correctness of the \emph{minimally preprocessed} data
+  simulation with two major advances: the correctness of the \emph{minimally preprocessed} data
   \citep{glasser_minimal_2013} released within the \gls*{hcp}, and a more realistic diffusion
   model.
 A possible competitor to \emph{diffantom} is the ground-truth data generated by the organizers of the
