@@ -113,7 +113,7 @@ These tools generally implemented the multi-tensor model \citep{alexander_analys
   to simulate fiber crossing, fanning, kissing, etc.
 \cite{close_software_2009} presented the \emph{Numerical Fibre Generator}, a software to simulate
   spherical shapes filled with digital fiber-tracts.
-\cite{caruyer_Phantomas_2014} proposed \emph{Phantomas} to simulate any kind of analytic geometry
+\cite{caruyer_phantomas_2014} proposed \emph{Phantomas} to simulate any kind of analytic geometry
   inside a sphere.
 \emph{Phantomas} models diffusion by a restricted and a hindered compartment, similar to
   \citep{assaf_composite_2005}.
@@ -136,7 +136,7 @@ First, since we use a dataset from the \gls*{hcp} as input, data are corrected f
 \cite{wilkins_fiber_2014} explicitly state that their original data were not subjected to certain distortion
   corrections, and thus, generated data are affected correspondingly.
 Second improvement is a more advanced signal model to generate the phantom using
-  \emph{Phantomas} \citep{caruyer_Phantomas_2014}.
+  \emph{Phantomas} \citep{caruyer_phantomas_2014}.
 
 The simulation process is started by generating a microstructural model from real data (\autoref{fig:figure1}).
 On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,5}\}$ corresponding to the free-diffusion
@@ -166,7 +166,7 @@ A close-up showing how the \glspl{fod} map looks is presented in \autoref{fig:fi
 The single fiber response is a Gaussian diffusion tensor with axial symmetry and eigenvalues $\lambda_1=$ 2.2\e{-3}
   and $\lambda_{2,3}=$ 0.2\e{-3} [mm$^2$s$^{-1}$].
 The resulting \glspl{fod} map is then combined with the isotropic compartments corresponding to $\{T_{1\,\cdots\,5}\}$
-  before generating the signal using \emph{Phantomas} \citep{caruyer_Phantomas_2014}.
+  before generating the signal using \emph{Phantomas} \citep{caruyer_phantomas_2014}.
 By default, diffusion data are generated using a scheme of 100 directions distributed in one shell with uniform
   coverage \citep{caruyer_design_2013}.
 Custom one- or multi-shell schemes can be generated supplying the tables of corresponding $b$-vectors and $b$-values.
@@ -246,7 +246,7 @@ The authors declare that the research was conducted in the absence of any commer
 \section*{Author Contributions}
 All the authors contributed to this study.
 OE designed the data generation procedure, implemented the processing pipelines and generated the example dataset.
-EC implemented \emph{Phantomas} \citep{caruyer_Phantomas_2014}, helped integrate the project with the simulation routines.
+EC implemented \emph{Phantomas} \citep{caruyer_phantomas_2014}, helped integrate the project with the simulation routines.
 OE, EC, AD thoroughly discussed and framed the aptness of the data in the community.
 AD, MBC, MJLC, and AS interpreted the resulting datasets.
 MBC, MJLC, and AS advised on all aspects of the study.
@@ -279,20 +279,26 @@ FA denotes the \gls*{fa} map obtained from the original \gls*{dmri} data, and $\
 The final $\{T_{1\,\cdots\,5}\}$ maps of isotropic fractions are computed as follows:
 
   \begin{align*}
-  T_1 &= (1.0-w_{cgm}) \cdot T'_1 \\
-  T_2 &= (1.0-w_{dgm}) \cdot T'_2 \\
-  T_3 &= (1.0-w_{wm}) \cdot T'_3 \\
+  T_1 &= (1.0-f_{cgm}) \cdot T'_1 \\
+  T_2 &= (1.0-f_{dgm}) \cdot T'_2 \\
+  T_3 &= (1.0-f_{wm}) \cdot T'_3 \\
   T_4 &= T'_4 \\
   T_5 &= 0.0
   \end{align*}
-where $w_{\{cgm, dgm, wm\}}$ are weighing factors of hindered diffusion for each tissue
-  (defaults are $w_{cgm} =$ 25\%, $w_{dgm} =$ 50\%, $w_{cgm} =$ 95\%).
+where $f_{\{cgm, dgm, wm\}}$ are the fractions of hindered diffusion for each tissue.
+\cite{sepehrband_brain_2015} found out that the fiber fraction ranges across the corpus
+  callosum from the 70$\pm$8\% in its body to an upper bound of 80$\pm$11\% in the splenium.
+Therefore, we choose $f_{wm} =$ 80\% as default fraction of hindered diffusion in the
+  \gls*{wm}.
+To our knowledge, hindered diffusion fractions have been studied only for \gls*{wm}.
+Therefore, we set $f_{cgm} =$ 25\% and $f_{dgm} =$ 50\% as they yield plausible \gls*{fa}
+  and \gls*{adc} maps, assessed visually.
 The final $\{F_{1\,\cdots\,3}\}$ maps are computed as follows:
 
 \begin{align*}
-F_1 &= w_{wm} \cdot T_2 \cdot \text{FA} + w_{f1} (w_{cgm} \cdot T_1 + w_{dgm} \cdot T_2) \\
-F_2 &= w_{wm} \cdot T_2 - (F_1 + F_3) + w_{f2} (w_{cgm} \cdot T_1 + w_{dgm} \cdot T_2) \\
-F_3 &= w_{wm} \cdot F'_3 + w_{f3} (w_{cgm} \cdot T_1 + w_{dgm} \cdot T_2)
+F_1 &= f_{wm} \cdot T_2 \cdot \text{FA} + w_{f1} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2) \\
+F_2 &= f_{wm} \cdot T_2 - (F_1 + F_3) + w_{f2} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2) \\
+F_3 &= f_{wm} \cdot F'_3 + w_{f3} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2)
 \end{align*}
 where $w_{\{f1, f2, f3\}}$ are the contributions of the \gls*{gm} compartments to each fiber population.
 By default: $w_{f1} = $ 48\%, $w_{f2} = $ 37\%, $w_{f3} = $ 15\%.
