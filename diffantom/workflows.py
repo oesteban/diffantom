@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-08-06 10:57:22
+# @Last Modified time: 2015-08-06 11:15:35
 
 import os
 import os.path as op
@@ -468,6 +468,8 @@ def gen_model(settings={}):
 
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['subject_id', 'data_dir']), name='inputnode')
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=['dyads', 'fsamples']), name='outputnode')
     inputnode.inputs.subject_id = settings['subject_id']
     inputnode.inputs.data_dir = settings['data_dir']
 
