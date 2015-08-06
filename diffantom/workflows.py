@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-08-06 11:16:28
+# @Last Modified time: 2015-08-06 12:12:23
 
 import os
 import os.path as op
@@ -487,7 +487,9 @@ def gen_model(settings={}):
                                 for k in ds_tpl_args.keys()}
     ds.inputs.template_args = ds_tpl_args
 
-    bpx = bedpostx_parallel()
+    params = {'n_fibres': 3, 'model': 2}
+
+    bpx = bedpostx_parallel(params)
     wf.connect([
         (inputnode, ds,         [('subject_id', 'subject_id'),
                                  ('data_dir', 'base_directory')]),
