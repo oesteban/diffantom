@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Oscar Esteban
 # @Date:   2015-06-25 15:46:08
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-06-25 16:51:04
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-08-06 11:02:57
 
 """
 ============================
@@ -39,6 +39,8 @@ if __name__ == '__main__':
                             formatter_class=RawTextHelpFormatter)
 
     g_input = parser.add_argument_group('Input')
+    g_input.add_argument('mode', choices=['evaluation', 'model'],
+                         default='evaluation')
     g_input.add_argument('-S', '--subjects_dir', action='store',
                          default=os.getenv('NEURO_DATA_HOME',
                                            op.abspath('../')),
@@ -53,6 +55,9 @@ if __name__ == '__main__':
         '-N', '--name', action='store', default='Diffantom',
         help=('default workflow name, it will create a new folder'))
 
+    g_input.add_argument('--nthreads', action='store', default=0,
+                         type=int, help='number of repetitions')
+
     opts = parser.parse_args()
 
     settings = {}
@@ -60,8 +65,29 @@ if __name__ == '__main__':
     settings['data_dir'] = opts.subjects_dir
     settings['subject_id'] = opts.subject
 
-    wf = gen_diffantom(opts.name, settings=settings)
+    # Setup work_dir
+    if not op.exists(opts.work_dir):
+        os.makedirs(opts.work_dir)
+
+    # Setup multiprocessing
+    nthreads = opts.nthreads
+    if nthreads == 0:
+        from multiprocessing import cpu_count
+        nthreads = cpu_count()
+
+    settings['nthreads'] = nthreads
+
+    plugin = 'Linear'
+    plugin_args = {}
+    if nthreads > 1:
+        plugin = 'MultiProc'
+        plugin_args = {'n_proc': nthreads, 'maxtasksperchild': 4}
+
+    if opts.mode == 'model':
+        wf = gen_model(settings=settings)
+    else:
+        wf = gen_diffantom(opts.name, settings=settings)
 
     wf.base_dir = settings['work_dir']
     # wf.write_graph(format='pdf')
-    wf.run()
+    wf.run(plugin=plugin, plugin_args=plugin_args)
