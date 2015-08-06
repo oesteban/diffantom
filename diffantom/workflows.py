@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   oesteban
-# @Last Modified time: 2015-08-06 11:15:35
+# @Last Modified time: 2015-08-06 11:16:28
 
 import os
 import os.path as op
@@ -491,7 +491,8 @@ def gen_model(settings={}):
     wf.connect([
         (inputnode, ds,         [('subject_id', 'subject_id'),
                                  ('data_dir', 'base_directory')]),
-        (ds,        bpx,        [(f, f) for f in fnames.keys()]),
+        (ds,        bpx,        [(f, 'inputnode.%s' % f)
+                                 for f in fnames.keys()]),
         (bpx,       outputnode, [('outputnode.dyads', 'dyads'),
                                  ('outputnode.fsamples', 'fsamples')])
 
