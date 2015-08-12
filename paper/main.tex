@@ -349,10 +349,11 @@ Once the microstructural model shown in the upper box has been prepared as descr
 \end{center}
 \textbf{\refstepcounter{figure}\label{fig:figure2} Figure \arabic{figure}. }%
 {\textbf{A. Recommended use of \emph{Diffantom}}.
-The dataset can be used to test algorithms and pipelines against a perturbation that is
-  introduced in \emph{Diffantom}.
-Perturbations can model typical artifacts found in \gls*{dmri} datasets or pathological conditions
-  such as a tumor.
+The phantom is designed to be used as ground-truth information in evaluation frameworks,
+  to implement unit test of algorithms, to check integration of processing units within
+  pipelines or to validate complete workflows.
+For instance, in order to evaluate artifacts, a perturbation can be induced in the microstructural
+  model or after simulation to provide reference and test datasets.
 \textbf{B1. Tractogram of fibers crossing slice 56 of \emph{Diffantom}} as extracted with \emph{MRTrix},
   represented over that corresponding slice of the \emph{b0} volume.
 \textbf{B2. Segmentation of some fiber bundles using \emph{tract\_querier}}: the right \gls*{cst} is
