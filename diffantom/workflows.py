@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-07-13 14:28:28
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-08-12 15:37:54
 
 import os
 import os.path as op
@@ -90,7 +90,7 @@ def simulate(name='SimDWI'):
 
     sch = pe.Node(LoadSamplingScheme(bvals=[2000]), name='LoadScheme')
     simdwi = pe.Node(PhantomasSticksSim(
-        lambda1=2.2e-3, lambda2=.2e-3, snr=90, save_fods=True),
+        lambda1=2.2e-3, lambda2=.2e-3, snr=30, save_fods=True),
         name='SimulateDWI')
 
     wf = pe.Workflow(name=name)
