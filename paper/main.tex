@@ -147,18 +147,26 @@ These compartments will be derived from the macroscopic structure of tissues wit
 On the other hand, the restricted-diffusion compartments are specified by up to three volume fractions \fmaps{}
   of three single fiber populations per voxel along with their corresponding direction maps \vmaps{}.
 
-The process to obtain the microstructural model can be described like follows:
-1) The fiber orientation maps $\{\mathbf{V}_i\}$ and their corresponding fiber-fraction maps $\{F_i\}$ are
-  obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}
-  on the \gls*{dmri} data of a certain \gls*{hcp} subject.
+The process to obtain the microstructural model from one dataset of the \gls*{hcp} can be described
+  like follows:
+1) The fiber orientation maps $\{\mathbf{V}_i\}$ and their corresponding estimations of volume fraction $\{F'_i\}$ are
+  obtained using the ball-and-stick model for multi-shell data of \emph{bedpostx} \citep{jbabdi_modelbased_2012}
+  on the \gls*{dmri} data.
+The \gls*{hcp} indicates \emph{bedpostx} to reconstruct their data \citep{glasser_minimal_2013}.
+Additionally, this software was able to exploit the multi-shell acquisitions of the \gls*{hcp} while
+  operating at whole-brain level.
 2) A \gls*{fa} map is obtained after fitting a tensor model with \emph{MRTrix}.
-3) The original fiber-fractions and the \gls*{fa} map are denoised with a non-local means filter included
+The \gls*{fa} is used to infer $F_1$ (the fraction map of the most prevalent fiber), avoiding the extremely
+  noisy estimation of $F'_1$ performed by \emph{bedpostx} in the previous step.
+3) The original fiber fractions $\{F'_i\}$ and the \gls*{fa} map are denoised with a nonlocal means filter included
   in \emph{dipy} \citep{garyfallis_dipy_2011}.
-This step produces an important smoothing of the maps, while preserving edges in them.
-It is also beneficial in simplifying the voxel-wise diffusion model.
-4) The macrostructural 5TT map $\{T'_j\}$ is extracted from the \acrlong*{t1} image of the subject, using \emph{MRTrix} tools.
-5) The objects obtained in the previous steps are combined as described in the \nameref{sec:appendix} to generate the
-  microstructural model, presented in \autoref{fig:figure1}-A.
+This step produces an important smoothing of the maps, while preserving the edges in them.
+Smoothing is also beneficial in simplifying the voxel-wise diffusion model.
+4) The macrostructural fractions $\{T'_j\}$ are extracted from the \acrlong*{t1} image of the dataset,
+  using standard \emph{FSL} segmentation tools \citep{jenkinson_fsl_2012}.
+5) The images obtained previously (\gls*{fa} map, $\{\mathbf{V}_i\}$, $\{F'_i\}$, and $\{T'_j\}$)
+  are combined as described in the \nameref{sec:appendix} to generate the final microstructural model
+  ($\{\mathbf{V}_i\}$, $\{F_i\}$, and $\{T_j\}$), presented in \autoref{fig:figure1}-A.
 
 \noindent\textbf{\textit{Diffusion signal generation\textcolon}\label{sec:data_dwi}} %
 Once a microstructural model of the volume has been synthesized, a map of \glspl{fod} is computed using spherical
