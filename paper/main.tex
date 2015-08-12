@@ -43,7 +43,12 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 \input{abbreviations.tex}
 
 
-\newcommand{\e}[1]{\ensuremath{\;\cdot\,}10\ensuremath{^{#1}}}
+\newcommand{\e}[1]{\ensuremath{\;\cdot\,\text{10}^\text{#1}}}
+\newcommand{\vmaps}{\ensuremath{\{\mathbf{V}_i \,|\, i \in \{1,2,3\}\}}}
+\newcommand{\fmaps}{\ensuremath{\{F_i \,|\, i \in \{1,2,3\}\}}}
+\newcommand{\tmaps}{\ensuremath{\{T_j \,|\, j \in \{1,\ldots,5\}\}}}
+\newcommand{\diffunits}{\ensuremath{\text{mm}^2\text{s}^{\text{-1}}}}
+
 \newcommand*\glslines[2][]{\glslink[#1]{#2}{\glsdisp{#2}{\acrlong{#2} --\glsentryshort{#2}--}}}
 
 \begin{document}
@@ -118,12 +123,12 @@ Using \emph{FiberFox}, the segmentation of each bundle was mapped to an analytic
 In \citep{esteban_simulationbased_2014} we addressed this phenomenon and concluded that the connectivity
   matrix of \emph{Phantomas} was not dense enough to evaluate the integration of correction methods
   in pipelines for the connectome extraction.
-In this report we present \emph{diffantom}, an \emph{in-silico} dataset to assess pipelines for tractography
+In this report we present \emph{Diffantom}, an \emph{in-silico} dataset to assess pipelines for tractography
   and connectome extraction using real data as source of whole-brain microstructural information.
 \emph{Diffantom} is inspired by the work of \cite{wilkins_fiber_2014}, with two principal novelties.
 First, since we use a dataset from the \gls*{hcp} as input, data are corrected for the most relevant distortions.
-\cite{wilkins_fiber_2014} explicitly state that their original data were not subjected to certain distortion
-  corrections, and thus, generated data are affected correspondingly.
+\cite{wilkins_fiber_2014} explicitly state that their original data were not corrected for certain artifacts,
+  and thus, generated data are affected correspondingly.
 The second improvement is a more advanced signal model to generate the phantom using the hindered and restricted
   diffusion model of \emph{Phantomas} \citep{caruyer_phantomas_2014}.
 
@@ -132,45 +137,45 @@ The second improvement is a more advanced signal model to generate the phantom u
 
 \noindent\textbf{\textit{Microstructural model\textcolon}\label{sec:data_model}} %
 The simulation process relies on a microstructural model derived from real data.
-On one hand, the software requires up to five fraction maps $\{T_{1\,\cdots\,5}\}$ of
+On one hand, the software requires up to five fraction maps \tmaps{} of
   free- and hindered- diffusion (see \autoref{fig:figure1}, box A).
 These compartments will be derived from the macroscopic structure of tissues within the brain,
   specified in the following order~%
 \footnote{Corresponding to the \emph{5TT format} established with the latest version 3.0
   of \emph{MRTrix} \citep{tournier_mrtrix_2012}}:
 \gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue~%
-\footnote{Since here we simulate healthy subjects, the last fraction map is empty and can be omitted}.
-On the other hand, the restricted-diffusion compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
-  of three single fiber populations per voxel along with their corresponding direction maps $\{V_{1\,\cdots\,3}\}$.
+\footnote{Since here we simulate healthy subjects, the last fraction map $F_5$ is empty and can be omitted}.
+On the other hand, the restricted-diffusion compartments are specified by up to three volume fractions \fmaps{}
+  of three single fiber populations per voxel along with their corresponding direction maps \vmaps{}.
 
 The process to obtain the microstructural model can be described like follows:
-1) The fiber orientation maps $\{V_{1\,\cdots\,3}\}$ and their corresponding fiber-fraction maps are
+1) The fiber orientation maps $\{\mathbf{V}_i\}$ and their corresponding fiber-fraction maps $\{F_i\}$ are
   obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}
   on the \gls*{dmri} data of a certain \gls*{hcp} subject.
 2) A \gls*{fa} map is obtained after fitting a tensor model with \emph{MRTrix}.
 3) The original fiber-fractions and the \gls*{fa} map are smoothed with a non-local means filter included
   in \emph{dipy} \citep{garyfallis_dipy_2011}.
-4) The macrostructural 5TT map is extracted from the \acrlong*{t1} image of the subject, using \emph{MRTrix} tools.
+4) The macrostructural 5TT map $\{T'_j\}$ is extracted from the \acrlong*{t1} image of the subject, using \emph{MRTrix} tools.
 5) The objects obtained in the previous steps are combined as described in the \nameref{sec:appendix} to generate the
   microstructural model, presented in \autoref{fig:figure1}-A.
 
 \noindent\textbf{\textit{Diffusion signal generation\textcolon}\label{sec:data_dwi}} %
 Once a microstructural model of the volume has been synthesized, a map of \glspl{fod} is computed using spherical
-  convolution of the single fiber response and the fiber orientation maps $\{V_{1\,\cdots\,3}\}$, weighted by the
-  corresponding fiber-fractions $\{F_{1\,\cdots\,3}\}$.
+  convolution of the single fiber response and the fiber orientation maps $\{\mathbf{V}_i\}$, weighted by the
+  corresponding fiber-fractions $\{F_i\}$.
 A close-up showing how the \glspl{fod} map looks is presented in \autoref{fig:figure1}.
 The single fiber response is a Gaussian diffusion tensor with axial symmetry and eigenvalues $\lambda_1=$ 2.2\e{-3}
-  and $\lambda_{2,3}=$ 0.2\e{-3} [mm$^2$s$^{-1}$].
-The resulting \glspl{fod} map is then combined with the isotropic compartments corresponding to $\{T_{1\,\cdots\,5}\}$
+  \diffunits{} and $\lambda_{2,3}=$ 0.2\e{-3} \diffunits{}.
+The resulting \glspl{fod} map is then combined with the isotropic compartments corresponding to $\{T_j\}$
   before generating the signal using \emph{Phantomas} \citep{caruyer_phantomas_2014}.
 By default, diffusion data are generated using a scheme of 100 directions distributed in one shell with uniform
   coverage \citep{caruyer_design_2013}.
-Custom one- or multi-shell schemes can be generated supplying the tables of corresponding $b$-vectors and $b$-values.
-Rician noise is also included in \emph{Phantomas}, and can be set by the user.
+Custom one- or multi-shell schemes can be generated supplying the tables of corresponding vectors and $b$-values.
+Rician noise is also included in \emph{Phantomas}, and the \gls*{snr} can be set by the user.
 The default value for \gls*{snr} is preset to 30.0.
-\Gls*{csf} was simulated with a unique compartment with isotropic diffusivity $D_{CSF}$ of 3.0\e{-3} [mm$^2$s$^{-1}$].
+\Gls*{csf} was simulated with a unique compartment with isotropic diffusivity $D_{CSF}$ of 3.0\e{-3} \diffunits{}.
 Conversely, \Gls*{wm} and \gls*{gm} included one isotropic compartment with $D_{WM} =$ 2.0\e{-4}, $D_{cGM} =$ 7.0\e{-4}
-  and $D_{dGM} =$ 9.0\e{-4}, respectively [mm$^2$s$^{-1}$].
+  and $D_{dGM} =$ 9.0\e{-4}, respectively [\diffunits{}].
 All these values for diffusivity (and the corresponding to the single-fiber response) can be modified by the user with
   custom settings.
 
@@ -182,10 +187,10 @@ This workflow, presented in \autoref{fig:figure1}, is implemented using
   \emph{nipype} \citep{gorgolewski_nipype_2011} to ensure reproducibility and usability.
 
 \noindent\textbf{\textit{Interpretation and recommended uses\textcolon}\label{sec:data_use}} %
-To illustrate the features of the \emph{diffantom}, the example dataset underwent a simplified
+To illustrate the features of \emph{Diffantom}, the example dataset underwent a simplified
   connectivity pipeline including \gls*{csd} and probabilistic tractography from
   \emph{MRTrix} \citep{tournier_mrtrix_2012}.
-\Gls*{csd} was configured with up to 8 spherical harmonics, and tractography with 1.6$\times$10$^\text{6}$
+\Gls*{csd} was reconstructed using 8$^\text{th}$-order spherical harmonics, and tractography with 1.6\e{6}
   seed points evenly distributed across a dilated mask of the \gls*{wm} tissue.
 \autoref{fig:figure2}, box B1 shows the result of the tractography obtained with such pipeline.
 Finally, we applied \emph{tract querier} \citep{wassermann_on_2013} on segmenting important fiber bundles such
@@ -199,9 +204,9 @@ We recommend \emph{Diffantom} as ground-truth in assessment frameworks (\autoref
 \begin{itemize}
   \item Investigating the impact of different diffusion sampling schemes on the local microstructure
     model of choice and on the subsequent global tractography outcome.
-  Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
+  Since the gradient scheme can be set by the user, \emph{Diffantom} can be seen as a mean to translate the so-called
   \emph{b-matrix} of the source dataset to any target scheme.
-  \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
+  \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \gls*{csf} contamination,
     susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at unit, integration and overall validation levels
     of evaluation.
   \item Using the \emph{Diffantom} as in box A of \autoref{fig:figure2}, if is possible to apply binary classification measures
@@ -219,32 +224,32 @@ In order to exemplify one of these intended uses, we also release a \emph{Diffan
 \noindent\textbf{\textit{Discussion\textcolon}}\label{sec:discussion} %
 Whole-brain, realistic \gls*{dmri} phantoms are necessary in the developing field of structural
   connectomics.
-The \emph{diffantom} is a derivative of \citep{wilkins_fiber_2014} in terms of methodology for
+\emph{Diffantom} is a derivative of \citep{wilkins_fiber_2014} in terms of methodology for
   simulation with two major advances: the correctness of the \emph{minimally preprocessed} data
   \citep{glasser_minimal_2013} released within the \gls*{hcp}, and a more realistic diffusion
   model.
-A possible competitor to \emph{diffantom} is the phantom generated for the Tractography Challenge in
+A possible competitor to \emph{Diffantom} is the phantom generated for the Tractography Challenge in
   ISMRM 2015.
-Similarly to \emph{diffantom}, they organizers used a \gls*{hcp} subject as source of structural information.
-While this phantom is designed for the bundle-wise evaluation of tractography (with scores such as geometrical coverage,
-  valid connections, invalid connections, missed connections, etc. \citep{cote_tractometer_2013}),
-  \emph{diffantom} is intended for the connectome-wise evaluation of results, yielding tractography with
-  a large number of bundles.
-Therefore, \emph{diffantom} and \emph{FiberFox} are complementary as the hypotheses that can be investigated are different.
-Moreover, \emph{diffantom} does not require costly manual segmentation of bundles, highly demanding in terms of physiology
+Similarly to \emph{Diffantom}, they organizers used a \gls*{hcp} subject as source of structural information.
+While this phantom is designed for the bundle-wise evaluation of tractography (with the scores defined in the
+  \emph{Tractometer} \citep{cote_tractometer_2013}, such as geometrical coverage, valid connections, invalid connections,
+  missed connections, etc.), \emph{Diffantom} is intended for the connectome-wise evaluation of results,
+  yielding a tractography with a large number of bundles.
+Therefore, \emph{Diffantom} and \emph{FiberFox} are complementary as the hypotheses that can be investigated are different.
+Moreover, \emph{Diffantom} does not require costly manual segmentation of bundles, highly demanding in terms of physiology
   expertise and operation time.
 This facilitates the reproducibility of the dataset by using the associated software workflow to easily
   generate custom \emph{diffantoms}.
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
-\emph{Diffantom} is a digital phantom generated from a dataset belonging to the \acrlong*{hcp}.
-The first \emph{diffantom} is presented here to be openly and freely distributed along with the necessary
+\emph{Diffantom} is a digital phantom generated from a dataset from the \acrlong*{hcp}.
+\emph{Diffantom} is presented here to be openly and freely distributed along with the necessary
   software resources to generate new \emph{diffantoms}.
 We encourage the neuroimage community to contribute with their own \emph{diffantoms} and share them openly.
 
 
 \section*{Data Sharing}
-The first \emph{diffantom} is available under the \gls*{cc0} in {\color{red} (dryad?)}.
+The first \emph{Diffantom} is available under the \gls*{cc0} in {\color{red} (dryad?)}.
 The associated software to ``\emph{diffantomize}'' real \gls*{dmri} data is available at \url{https://github.com/oesteban/diffantom}
   under an MIT license.
 \emph{Phantomas} is available in \url{https://github.com/ecaruyer/Phantomas} under the revised-BSD license.
@@ -281,12 +286,12 @@ This study was supported by the Spanish Ministry of Science and Innovation
 \glsresetall
 \linenumbers
 \section*{Appendix}\label{sec:appendix}
-Let $\{T'_{1\,\cdots\,5}\}$ be the set of original fractions maps obtained with \texttt{act\_anat\_prepare\_fsl}, a
+Let $\{T'_j\}$ be the set of original fractions maps obtained with \texttt{act\_anat\_prepare\_fsl}, a
   tool in \emph{MRTrix} that combines FAST \citep{zhang_segmentation_2001} and FIRST \citep{patenaude_bayesian_2011}
   to generate the macrostructural 5TT map.
 FA denotes the \gls*{fa} map obtained from the original \gls*{dmri} data, and $\{V_{1\,\cdots\,3}, F'_{1\,\cdots\,3}\}$ the direction
   maps $V_i$ of restricted diffusion by fibers with their estimated volume fractions $F'_i$ calculated with BEDPOSTX.
-The final $\{T_{1\,\cdots\,5}\}$ maps of isotropic fractions are computed as follows:
+The final $\{T_j\}$ maps of isotropic fractions are computed as follows:
 
   \begin{align*}
   T_1 &= (1.0-f_{cgm}) \cdot T'_1 \\
@@ -303,7 +308,7 @@ Therefore, we choose $f_{wm} =$ 80\% as default fraction of restricted diffusion
 To our knowledge, restricted diffusion fractions have been studied only for \gls*{wm}.
 Therefore, we set $f_{cgm} =$ 25\% and $f_{dgm} =$ 50\% as they yield plausible \gls*{fa}
   and \gls*{adc} maps, assessed visually.
-The final $\{F_{1\,\cdots\,3}\}$ maps are computed as follows:
+The final $\{F_i\}$ maps are computed as follows:
 
 \begin{align*}
 F_1 &= f_{wm} \cdot T_2 \cdot \text{FA} + w_{f1} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2) \\
@@ -312,7 +317,7 @@ F_3 &= f_{wm} \cdot F'_3 + w_{f3} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2)
 \end{align*}
 where $w_{\{f1, f2, f3\}}$ are the contributions of the \gls*{gm} compartments to each fiber population.
 By default: $w_{f1} = $ 48\%, $w_{f2} = $ 37\%, $w_{f3} = $ 15\%.
-Finally, the resulting maps are normalized to fulfill $\sum_i T_i + \sum_i F_i = 1.0$.
+Finally, the resulting maps are normalized to fulfill $\sum_j T_j + \sum_i F_i = 1.0$.
 
 \newpage
 \section*{Figures}
@@ -335,15 +340,16 @@ This microstructural model is fed into a simulation block that generates the fin
 \includegraphics[width=\linewidth]{figures/figure02}
 \end{center}
 \textbf{\refstepcounter{figure}\label{fig:figure2} Figure \arabic{figure}. }%
-{\textbf{A. Recommended use of \emph{diffantom}}.
+{\textbf{A. Recommended use of \emph{Diffantom}}.
 The dataset can be used to test algorithms and pipelines against a perturbation that is
-  introduced in \emph{diffantom}.
+  introduced in \emph{Diffantom}.
 Perturbations can model typical artifacts found in \gls*{dmri} datasets or pathological conditions
   such as a tumor.
-\textbf{B1. Tractogram of fibers crossing slice 56 of the \emph{diffantom}} represented over that corresponding
-  slice of the \emph{b0} volume. \textbf{B2. Segmentation of some fiber bundles}: the right \gls*{cst} is
+\textbf{B1. Tractogram of fibers crossing slice 56 of \emph{Diffantom}} as extracted with \emph{MRTrix},
+  represented over that corresponding slice of the \emph{b0} volume.
+\textbf{B2. Segmentation of some fiber bundles using \emph{tract\_querier}}: the right \gls*{cst} is
   represented in blue color, the left \gls*{cst} in red, and the forceps minor in green.
-  The box includes the slice 56 of the \emph{b0} and the pial surface is represented with a light gray shadow.
+  The box includes the slice 56 of the \emph{b0} and the pial surface is represented with transparency.
 }
 \end{figure}
 
