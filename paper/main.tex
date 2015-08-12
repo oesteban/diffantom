@@ -256,7 +256,7 @@ The associated software to ``\emph{diffantomize}'' real \gls*{dmri} data is avai
   under an MIT license.
 \emph{Phantomas} is available in \url{https://github.com/ecaruyer/Phantomas} under the revised-BSD license.
 
-\section*{Disclosure/Conflict-of-Interest Statement}
+\section*{Disclosure}
 
 The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
 
@@ -328,12 +328,18 @@ Finally, the resulting maps are normalized to fulfill $\sum_j T_j + \sum_i F_i =
 \begin{center}
 \includestandalone[width=\linewidth]{figure01}
 \end{center}
-\textbf{\refstepcounter{figure}\label{fig:figure1} Figure \arabic{figure}. }%
-{\textbf{Generation of \emph{diffantoms}:} First, a microstructural model is generated as described
-  in the \nameref{sec:data_generation} subsection.
+\textbf{\refstepcounter{figure}\label{fig:figure1} Figure \arabic{figure}. }{%
+\textbf{A. Microstructural model of \emph{Diffantom}}.
+The phantom is simulated from an underlying microstructural model specified with the
+  following volume-fraction maps: three hindered-diffusion compartments $\{T_1, T_2, T_3\}$,
+  one free-diffusion compartment $T_4$ corresponding to the \gls*{csf},
+  three restricted-diffusion compartments $\{F_i\}$, and three vectorial maps
+  associated with the local fiber directions $\{\mathbf{V}_i\}$.
 Please note the piece-wise linear function of the color scale to enable visibility of small volume fractions.
-This microstructural model is fed into a simulation block that generates the final \gls*{dmri} dataset
-  as described in the second block.
+\textbf{B. Workflow to generate \emph{diffantoms}}.
+The pipeline to generate phantoms from any \gls*{hcp} dataset is presented in the lower box.
+Once the microstructural model shown in the upper box has been prepared as described in \nameref{sec:data_model},
+  the local orientations are computed and fed into \emph{Phantomas} to finally generate the signal.
 }
 \end{figure}
 
