@@ -202,11 +202,18 @@ We recommend \emph{Diffantom} as ground-truth in assessment frameworks (\autoref
   Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
   \emph{b-matrix} of the source dataset to any target scheme.
   \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
-    susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at both local and global levels.
-  \item Characterizing the \acrfull*{roc} of connectivity pipelines.
-  \item Generation of synthetic connectivity networks to test graph theory analyses.
-  \item Simulation of pathological brains (e.g. tumors as in \cite{kaus_simulation_2000}).
+    susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at unit, integration and overall validation levels
+    of evaluation.
+  \item Using the \emph{Diffantom} as in box A of \autoref{fig:figure2}, if is possible to apply binary classification measures
+    to evaluate the resulting connectivity matrix.
+  Considering the connectivity matrix of the reference \emph{Diffantom} as a message to be sent through a pipeline, the resulting
+    matrix of the test \emph{Diffantom} would be the received message, and the \acrfull*{roc} of the pipeline can be
+    characterized.
+  \item Simulation of pathological brains by altering the microstructural
+    model accordingly (e.g. as tumors were simulated in \cite{kaus_simulation_2000}).
 \end{itemize}
+In order to exemplify one of these intended uses, we also release a \emph{Diffantom} including the susceptibility-derived
+  distortion in simulation.
 
 \section*{Discussion and conclusion}
 \noindent\textbf{\textit{Discussion\textcolon}}\label{sec:discussion} %
