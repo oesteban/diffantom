@@ -153,8 +153,10 @@ The process to obtain the microstructural model can be described like follows:
   obtained using the ball-and-stick model for multi-shell data of BEDPOSTX \citep{jbabdi_modelbased_2012}
   on the \gls*{dmri} data of a certain \gls*{hcp} subject.
 2) A \gls*{fa} map is obtained after fitting a tensor model with \emph{MRTrix}.
-3) The original fiber-fractions and the \gls*{fa} map are smoothed with a non-local means filter included
+3) The original fiber-fractions and the \gls*{fa} map are denoised with a non-local means filter included
   in \emph{dipy} \citep{garyfallis_dipy_2011}.
+This step produces an important smoothing of the maps, while preserving edges in them.
+It is also beneficial in simplifying the voxel-wise diffusion model.
 4) The macrostructural 5TT map $\{T'_j\}$ is extracted from the \acrlong*{t1} image of the subject, using \emph{MRTrix} tools.
 5) The objects obtained in the previous steps are combined as described in the \nameref{sec:appendix} to generate the
   microstructural model, presented in \autoref{fig:figure1}-A.
