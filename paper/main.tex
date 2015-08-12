@@ -193,15 +193,14 @@ Finally, we applied \emph{tract querier} \citep{wassermann_on_2013} on segmentin
 Particularly, due to its location nearby the orbitofrontal lobe, the forceps minor is generally affected by
   susceptibility distortions.
 
-Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
-  \emph{b-matrix} of the \gls*{hcp} to any target scheme.
-A second recommended use case of the simulation workflow is its integration in assessment frameworks
-  (\autoref{fig:figure2}, box A) for the unit testing of algorithms, the integration tests of
-  modules in workflows and the full validation of pipelines.
-The \emph{diffantom} enables the following evaluations of connectivity pipelines:
+We recommend \emph{Diffantom} as ground-truth in assessment frameworks (\autoref{fig:figure2}, box A)
+  for the unit testing of algorithms, the integration tests of modules in workflows and the full
+  validation of pipelines:
 \begin{itemize}
-  \item Studies on the impact of different diffusion sampling schemes on the local micro-structure
-  model of choice and on the subsequent global tractography outcome.
+  \item Investigating the impact of different diffusion sampling schemes on the local microstructure
+    model of choice and on the subsequent global tractography outcome.
+  Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
+  \emph{b-matrix} of the source dataset to any target scheme.
   \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
     susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at both local and global levels.
   \item Characterizing the \acrfull*{roc} of connectivity pipelines.
