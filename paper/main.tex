@@ -140,11 +140,10 @@ The simulation process relies on a microstructural model derived from real data.
 On one hand, the software requires up to five fraction maps \tmaps{} of
   free- and hindered- diffusion (see \autoref{fig:figure1}, box A).
 These compartments will be derived from the macroscopic structure of tissues within the brain,
-  specified in the following order~%
-\footnote{Corresponding to the \emph{5TT format} established with the latest version 3.0
-  of \emph{MRTrix} \citep{tournier_mrtrix_2012}}:
-\gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue~%
-\footnote{Since here we simulate healthy subjects, the last fraction map $F_5$ is empty and can be omitted}.
+  specified in the following order\footnote{Corresponding to the \emph{5TT format} established
+  with the latest version 3.0 of \emph{MRTrix} \citep{tournier_mrtrix_2012}}:
+  \gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue\footnote{Since here we
+  simulate healthy subjects, the last fraction map $T_5$ is empty and can be omitted}.
 On the other hand, the restricted-diffusion compartments are specified by up to three volume fractions \fmaps{}
   of three single fiber populations per voxel along with their corresponding direction maps \vmaps{}.
 
@@ -168,18 +167,20 @@ Once a microstructural model of the volume has been synthesized, a map of \glspl
 A close-up showing how the \glspl{fod} map looks is presented in \autoref{fig:figure1}.
 The single fiber response is a Gaussian diffusion tensor with axial symmetry and eigenvalues $\lambda_1=$ 2.2\e{-3}
   \diffunits{} and $\lambda_{2,3}=$ 0.2\e{-3} \diffunits{}.
-The resulting \glspl{fod} map is then combined with the isotropic compartments corresponding to $\{T_j\}$
-  before generating the signal using \emph{Phantomas} \citep{caruyer_phantomas_2014}.
+The resulting \glspl{fod} map is then combined with the free- and hindered-diffusion compartments corresponding to $\{T_j\}$.
+The free-diffusion compartment corresponds to the \gls*{csf} fraction map $T_4$ and is modeled with isotropic
+  diffusivity $D_{CSF}$ of 3.0\e{-3} \diffunits{}.
+The hindered-diffusion compartments correspond to $\{T_1,T_2,T_3\}$ and are also modeled with isotropic diffusivity
+  $D_{WM} =$ 2.0\e{-4}, $D_{cGM} =$ 7.0\e{-4} and $D_{dGM} =$ 9.0\e{-4}, respectively [\diffunits{}].
+All these values for diffusivity (and the corresponding to the single-fiber response) can be modified by the user with
+  custom settings.
+The restricted- and hindered- compartments are then fed into \emph{Phantomas} \citep{caruyer_phantomas_2014}
+  and the final \gls*{dmri} signal is obtained.
 By default, diffusion data are generated using a scheme of 100 directions distributed in one shell with uniform
   coverage \citep{caruyer_design_2013}.
 Custom one- or multi-shell schemes can be generated supplying the tables of corresponding vectors and $b$-values.
 Rician noise is also included in \emph{Phantomas}, and the \gls*{snr} can be set by the user.
 The default value for \gls*{snr} is preset to 30.0.
-\Gls*{csf} was simulated with a unique compartment with isotropic diffusivity $D_{CSF}$ of 3.0\e{-3} \diffunits{}.
-Conversely, \Gls*{wm} and \gls*{gm} included one isotropic compartment with $D_{WM} =$ 2.0\e{-4}, $D_{cGM} =$ 7.0\e{-4}
-  and $D_{dGM} =$ 9.0\e{-4}, respectively [\diffunits{}].
-All these values for diffusivity (and the corresponding to the single-fiber response) can be modified by the user with
-  custom settings.
 
 
 \noindent\textbf{\textit{Implementation and reproducibility\textcolon}\label{sec:data_workflow}} %
