@@ -79,25 +79,7 @@ These analyses have been successfully applied in the definition of the unique su
   study of the link between structural and functional connectivity \citep{messe_predicting_2015}.
 However, the development of the field is limited by the lack of a gold standard to test and compare the
   wide range of methodologies available for processing and analyzing \gls*{dmri}.
-In this report we present \emph{diffantom}, an \emph{in-silico} dataset to assess tractography pipelines using
-  real data as source of whole-brain microstructural information.
-We also provide a full software layer to produce \emph{diffantoms} from real \gls*{dmri} datasets
-  drawn from the \gls*{hcp}.
-The \emph{diffantom} enables the following evaluations of connectivity pipelines:
-\begin{itemize}
-  \item Studies on the impact of different diffusion sampling schemes on the local micro-structure
-  model of choice and on the subsequent global tractography outcome.
-  \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
-    susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at both local and global levels.
-  \item Characterizing the \acrfull*{roc} of connectivity pipelines.
-  \item Generation of synthetic connectivity networks to test graph theory analyses.
-  \item Simulation of pathological brains (e.g. tumors as in \cite{kaus_simulation_2000}).
-\end{itemize}
 
-
-\section*{Background}
-The assessment of tractography from \gls*{dmri} data is challenging due to
-  the lack of a gold standard.
 Large efforts have been devoted to the development of physical phantoms
   \citep{lin_validation_2001,campbell_flowbased_2005,perrin_validation_2005,fieremans_simulation_2008,tournier_resolving_2008}.
 \cite{cote_tractometer_2013} conducted a thorough review of tractography methodologies using the
@@ -125,26 +107,33 @@ Recently, \cite{neher_fiberfox_2014} proposed \emph{FiberFox}, a visualization s
 Once the geometries are obtained, the software generates the corresponding \gls*{dmri} signal with a
   methodology very close to that implemented in \emph{Phantomas}.
 
-
-\section*{Data description}
-
-\noindent\textbf{\textit{Data Generation\textcolon}\label{sec:data_generation}}
-The methods to generate \emph{diffantoms} are rooted in the work of \cite{wilkins_fiber_2014}, and
-  described in \autoref{fig:figure1}.
-\emph{Diffantom} integrates two major improvements with respect to \citep{wilkins_fiber_2014}.
+\emph{Diffantom} is originally designed for the investigation of susceptibility-derived distortions, a
+  typical artifact that produces geometrical warping in certain regions of \gls*{dmri} datasets.
+In \citep{esteban_simulationbased_2014} we addressed this phenomenon and concluded that the connectivity
+  matrix of \emph{Phantomas} was not dense enough to evaluate the integration of correction methods
+  in pipelines for the connectome extraction.
+In this report we present \emph{diffantom}, an \emph{in-silico} dataset to assess pipelines for tractography
+  and connectome extraction using real data as source of whole-brain microstructural information.
+\emph{Diffantom} is inspired by the work of \cite{wilkins_fiber_2014}, with two principal novelties.
 First, since we use a dataset from the \gls*{hcp} as input, data are corrected for the most relevant distortions.
 \cite{wilkins_fiber_2014} explicitly state that their original data were not subjected to certain distortion
   corrections, and thus, generated data are affected correspondingly.
-Second improvement is a more advanced signal model to generate the phantom using
-  \emph{Phantomas} \citep{caruyer_phantomas_2014}.
+The second improvement is a more advanced signal model to generate the phantom using the hindered and restricted
+  diffusion model of \emph{Phantomas} \citep{caruyer_phantomas_2014}.
 
-The simulation process is started by generating a microstructural model from real data (\autoref{fig:figure1}).
-On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,5}\}$ corresponding to the free-diffusion
-  compartments that will be simulated.
-These isotropic fraction maps use the \emph{5TT format} established with the latest version 3.0 of
-  \emph{MRTrix} \citep{tournier_mrtrix_2012}, that describes the structure of the brain in the following
-  order: \gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue.
-Since we simulate a healthy subject, the last fraction map is empty and can be omitted.
+
+\section*{Data description}
+
+\noindent\textbf{\textit{Microstructural model\textcolon}\label{sec:data_model}} %
+The simulation process relies on a microstructural model derived from real data (\autoref{fig:figure1}).
+On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,5}\}$ corresponding to the
+  free-diffusion compartments.
+These fraction maps are obtained from the macroscopic structure of tissues in the brain,
+  in the following order~%
+\footnote{Corresponding to the \emph{5TT format} established with the latest version 3.0
+  of \emph{MRTrix} \citep{tournier_mrtrix_2012}}:
+\gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue~%
+\footnote{Since here we simulate healthy subjects, the last fraction map is empty and can be omitted}.
 On the other hand, the hindered-diffusion compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
   of three single fiber populations per voxel along with their corresponding direction maps $\{V_{1\,\cdots\,3}\}$.
 
@@ -159,6 +148,7 @@ The process to obtain the microstructural model can be described like follows:
 5) The objects obtained in the previous steps are combined as described in the \nameref{sec:appendix} to generate the
   microstructural model, presented in \autoref{fig:figure1}-A.
 
+\noindent\textbf{\textit{Diffusion signal generation\textcolon}\label{sec:data_dwi}} %
 Once a microstructural model of the volume has been synthesized, a map of \glspl{fod} is computed using spherical
   convolution of the single fiber response and the fiber orientation maps $\{V_{1\,\cdots\,3}\}$, weighted by the
   corresponding fiber-fractions $\{F_{1\,\cdots\,3}\}$.
@@ -179,13 +169,13 @@ All these values for diffusivity (and the corresponding to the single-fiber resp
   custom settings.
 
 
-\noindent\textbf{\textit{Interpretation and use\textcolon}}
-The full simulation workflow, presented in \autoref{fig:figure1}, is implemented using
+\noindent\textbf{\textit{Implementation and reproducibility\textcolon}\label{sec:data_workflow}} %
+We also provide a full software layer to produce \emph{diffantoms} from real \gls*{dmri} datasets
+  drawn from the \gls*{hcp}.
+This workflow, presented in \autoref{fig:figure1}, is implemented using
   \emph{nipype} \citep{gorgolewski_nipype_2011} to ensure reproducibility and usability.
-The recommended use case of the simulation workflow is its integration in assessment frameworks
-  (\autoref{fig:figure2}, box A) for the evaluation of algorithms and/or pipelines.
 
-
+\noindent\textbf{\textit{Interpretation and recommended uses\textcolon}\label{sec:data_use}} %
 To illustrate the features of the \emph{diffantom}, the example dataset underwent a simplified
   connectivity pipeline including \gls*{csd} and probabilistic tractography from
   \emph{MRTrix} \citep{tournier_mrtrix_2012}.
@@ -196,11 +186,24 @@ Finally, we applied \emph{tract querier} \citep{wassermann_on_2013} on segmentin
   as the \gls*{cst} and the forceps minor (see \autoref{fig:figure2}, box B2).
 Particularly, due to its location nearby the orbitofrontal lobe, the forceps minor is generally affected by
   susceptibility distortions.
-The study of this phenomena \citep{esteban_simulationbased_2014} led us to design \emph{diffantom}.
 
+Since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
+  \emph{b-matrix} of the \gls*{hcp} to any target scheme.
+A second recommended use case of the simulation workflow is its integration in assessment frameworks
+  (\autoref{fig:figure2}, box A) for the unit testing of algorithms, the integration tests of
+  modules in workflows and the full validation of pipelines.
+The \emph{diffantom} enables the following evaluations of connectivity pipelines:
+\begin{itemize}
+  \item Studies on the impact of different diffusion sampling schemes on the local micro-structure
+  model of choice and on the subsequent global tractography outcome.
+  \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \glslines{csf} contamination,
+    susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at both local and global levels.
+  \item Characterizing the \acrfull*{roc} of connectivity pipelines.
+  \item Generation of synthetic connectivity networks to test graph theory analyses.
+  \item Simulation of pathological brains (e.g. tumors as in \cite{kaus_simulation_2000}).
+\end{itemize}
 
 \section*{Discussion and conclusion}
-
 \noindent\textbf{\textit{Discussion\textcolon}}\label{sec:discussion} %
 Whole-brain, realistic \gls*{dmri} phantoms are necessary in the developing field of structural
   connectomics.
@@ -222,8 +225,6 @@ Therefore, \emph{diffantom} and \emph{FiberFox} are complementary as the hypothe
 Moreover, \emph{diffantom} does not require costly manual segmentation of bundles, highly demanding in terms of physiology
   expertise and operation time.
 This facilitates the use of \emph{diffantom} as a factory of whole-brain diffusion phantoms.
-Finally, since the gradient scheme can be set by the user, \emph{diffantom} can be seen as a mean to translate the so-called
-  \emph{b-matrix} of the \gls*{hcp} to any target scheme.
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
 \emph{Diffantom} is a digital phantom generated from a dataset belonging to the \acrlong*{hcp}, and the software factory to
