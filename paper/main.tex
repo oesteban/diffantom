@@ -132,16 +132,16 @@ The second improvement is a more advanced signal model to generate the phantom u
 \section*{Data description}
 
 \noindent\textbf{\textit{Microstructural model\textcolon}\label{sec:data_model}} %
-The simulation process relies on a microstructural model derived from real data (\autoref{fig:figure1}).
-On one hand, the software requires up to five volume fractions $\{T_{1\,\cdots\,5}\}$ corresponding to the
-  free-diffusion compartments.
-These fraction maps are obtained from the macroscopic structure of tissues in the brain,
-  in the following order~%
+The simulation process relies on a microstructural model derived from real data.
+On one hand, the software requires up to five fraction maps $\{T_{1\,\cdots\,5}\}$ of
+  free- and hindered- diffusion (see \autoref{fig:figure1}, box A).
+These compartements will be derived from the macroscopic structure of tissues within the brain,
+  specified in the following order~%
 \footnote{Corresponding to the \emph{5TT format} established with the latest version 3.0
   of \emph{MRTrix} \citep{tournier_mrtrix_2012}}:
 \gls*{cgm}, \gls*{dgm}, \gls*{wm}, \gls*{csf}, and abnormal tissue~%
 \footnote{Since here we simulate healthy subjects, the last fraction map is empty and can be omitted}.
-On the other hand, the hindered-diffusion compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
+On the other hand, the restricted-diffusion compartments are specified by up to three volume fractions $\{F_{1\,\cdots\,3}\}$
   of three single fiber populations per voxel along with their corresponding direction maps $\{V_{1\,\cdots\,3}\}$.
 
 The process to obtain the microstructural model can be described like follows:
@@ -290,12 +290,12 @@ The final $\{T_{1\,\cdots\,5}\}$ maps of isotropic fractions are computed as fol
   T_4 &= T'_4 \\
   T_5 &= 0.0
   \end{align*}
-where $f_{\{cgm, dgm, wm\}}$ are the fractions of hindered diffusion for each tissue.
+where $f_{\{cgm, dgm, wm\}}$ are the fractions of restricted diffusion for each tissue.
 \cite{sepehrband_brain_2015} found out that the fiber fraction ranges across the corpus
   callosum from the 70$\pm$8\% in its body to an upper bound of 80$\pm$11\% in the splenium.
-Therefore, we choose $f_{wm} =$ 80\% as default fraction of hindered diffusion in the
+Therefore, we choose $f_{wm} =$ 80\% as default fraction of restricted diffusion in the
   \gls*{wm}.
-To our knowledge, hindered diffusion fractions have been studied only for \gls*{wm}.
+To our knowledge, restricted diffusion fractions have been studied only for \gls*{wm}.
 Therefore, we set $f_{cgm} =$ 25\% and $f_{dgm} =$ 50\% as they yield plausible \gls*{fa}
   and \gls*{adc} maps, assessed visually.
 The final $\{F_{1\,\cdots\,3}\}$ maps are computed as follows:
