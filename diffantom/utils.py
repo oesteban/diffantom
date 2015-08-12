@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:16
-# @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-07-10 12:45:40
+# @Last Modified by:   oesteban
+# @Last Modified time: 2015-08-12 11:01:17
 
 
 def _sim_mask(in_file):
