@@ -170,13 +170,13 @@ Smoothing is also beneficial in simplifying the voxel-wise diffusion model.
   ($\{\mathbf{V}_i\}$, $\{F_i\}$, and $\{T_j\}$), presented in \autoref{fig:figure1}-A.
 
 \noindent\textbf{\textit{Diffusion signal generation\textcolon}\label{sec:data_dwi}} %
-Once a microstructural model of the volume has been synthesized, a map of \glspl{fodf} is computed using spherical
-  convolution of the single fiber response and the fiber orientation maps $\{\mathbf{V}_i\}$, weighted by the
-  corresponding fiber-fractions $\{F_i\}$.
-A close-up showing how the \glspl{fodf} map looks is presented in \autoref{fig:figure1}-B.
+Once a microstructural model of the subject has been synthesized, the fiber orientation maps $\{\mathbf{V}_i\}$
+  are weighted by the fiber-fraction maps $\{F_i\}$ and projected onto a continuous representation of
+  the \glspl{fod}.
+A close-up showing how the \glspl{fod} map looks is presented in \autoref{fig:figure1}B.
 The single fiber response is a Gaussian diffusion tensor with axial symmetry and eigenvalues $\lambda_1=$ 2.2\e{-3}
   \diffunits{} and $\lambda_{2,3}=$ 0.2\e{-3} \diffunits{}.
-The resulting \glspl{fodf} map is then combined with the free- and hindered-diffusion compartments corresponding to $\{T_j\}$.
+The resulting \glspl{fod} map is then combined with the free- and hindered-diffusion compartments corresponding to $\{T_j\}$.
 The free-diffusion compartment corresponds to the \gls*{csf} fraction map $T_4$ and is modeled with isotropic
   diffusivity $D_{CSF}$ of 3.0\e{-3} \diffunits{}.
 The hindered-diffusion compartments correspond to $\{T_1,T_2,T_3\}$ and are also modeled with isotropic diffusivity
