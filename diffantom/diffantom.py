@@ -3,7 +3,7 @@
 # @Author: Oscar Esteban
 # @Date:   2015-06-25 15:46:08
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-09-09 15:18:50
+# @Last Modified time: 2015-09-09 15:45:41
 
 """
 ============================
@@ -29,7 +29,7 @@ __status__ = "Prototype"
 if __name__ == '__main__':
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from workflows import gen_diffantom, gen_model
+    from workflows import gen_diffantom, gen_model, finf_bundles
     import glob
     import os
     import os.path as op

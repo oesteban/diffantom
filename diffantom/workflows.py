@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-09-09 15:25:12
+# @Last Modified time: 2015-09-09 15:44:29
 
 import os
 import os.path as op
@@ -84,11 +84,11 @@ def finf_bundles(name='FINFBundles', settings={}):
     outputnode = pe.Node(
         niu.IdentityInterface(fields=out_fields), name='outputnode')
 
-    fnames = dict(in_dwi='dwi.nii.gz',
+    fnames = dict(in_dwi='sim_dwi.nii.gz',
                   in_grad='grads.txt',
-                  in_5tt='in_5tt.nii.gz',
-                  parcellation='parc.nii.gz',
+                  in_5tt='act5tt.nii.gz',
                   aparc='aparc+aseg.nii.gz',
+                  parcellation='aparc+aseg.nii.gz',
                   wmparc='wmparc.nii.gz')
 
     ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
@@ -96,7 +96,7 @@ def finf_bundles(name='FINFBundles', settings={}):
     ds = pe.Node(nio.DataGrabber(
         infields=['subject_id'], sort_filelist=True, template='*',
         outfields=ds_tpl_args.keys()), name='DataSource')
-    ds.inputs.field_template = {k: 'models/%s/%s'
+    ds.inputs.field_template = {k: 'subjects/%s/%s'
                                 for k in ds_tpl_args.keys()}
     ds.inputs.template_args = ds_tpl_args
 
