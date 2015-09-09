@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-08-12 15:37:54
+# @Last Modified time: 2015-09-09 15:25:12
 
 import os
 import os.path as op
@@ -68,6 +68,44 @@ def gen_diffantom(name='Diffantom', settings={}):
         (sim_mod,   trk,      [
             ('outputnode.out_5tt', 'inputnode.in_5tt'),
             ('outputnode.parcellation', 'inputnode.parcellation')])
+    ])
+    return wf
+
+
+def finf_bundles(name='FINFBundles', settings={}):
+    inputnode = pe.Node(niu.IdentityInterface(
+        fields=['subject_id', 'data_dir']), name='inputnode')
+    inputnode.inputs.subject_id = settings['subject_id']
+    inputnode.inputs.data_dir = settings['data_dir']
+
+    out_fields = ['out_file', 'out_fa', 'out_adc', 'out_tdi', 'out_map',
+                  'out_cst']
+
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=out_fields), name='outputnode')
+
+    fnames = dict(in_dwi='dwi.nii.gz',
+                  in_grad='grads.txt',
+                  in_5tt='in_5tt.nii.gz',
+                  parcellation='parc.nii.gz',
+                  aparc='aparc+aseg.nii.gz',
+                  wmparc='wmparc.nii.gz')
+
+    ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
+
+    ds = pe.Node(nio.DataGrabber(
+        infields=['subject_id'], sort_filelist=True, template='*',
+        outfields=ds_tpl_args.keys()), name='DataSource')
+    ds.inputs.field_template = {k: 'models/%s/%s'
+                                for k in ds_tpl_args.keys()}
+    ds.inputs.template_args = ds_tpl_args
+
+    trk = act_workflow()
+
+    wf = pe.Workflow(name=name)
+    wf.connect([
+        (ds, trk, [(f, 'inputnode.' + f) for f in fnames.keys()]),
+        (trk, outputnode, [('outputnode.' + f, f) for f in out_fields])
     ])
     return wf
 

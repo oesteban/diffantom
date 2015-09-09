@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Oscar Esteban
 # @Date:   2015-06-25 15:46:08
-# @Last Modified by:   oesteban
-# @Last Modified time: 2015-08-06 11:13:56
+# @Last Modified by:   Oscar Esteban
+# @Last Modified time: 2015-09-09 15:18:50
 
 """
 ============================
@@ -39,7 +39,7 @@ if __name__ == '__main__':
                             formatter_class=RawTextHelpFormatter)
 
     g_input = parser.add_argument_group('Input')
-    g_input.add_argument('mode', choices=['evaluation', 'model'],
+    g_input.add_argument('mode', choices=['evaluation', 'model', 'bundles'],
                          default='evaluation')
     g_input.add_argument('-S', '--subjects_dir', action='store',
                          default=os.getenv('NEURO_DATA_HOME',
@@ -85,8 +85,10 @@ if __name__ == '__main__':
 
     if opts.mode == 'model':
         wf = gen_model(opts.name, settings=settings)
-    else:
+    elif opts.mode == 'evaluation':
         wf = gen_diffantom(opts.name, settings=settings)
+    elif opts.mode == 'bundles':
+        wf = finf_bundles(opts.name, settings=settings)
 
     wf.base_dir = settings['work_dir']
     # wf.write_graph(format='pdf')
