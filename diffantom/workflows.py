@@ -462,9 +462,9 @@ def track_querier(name='TractQuery'):
     return wf
 
 
-def gen_model(settings={}):
+def gen_model(name='GenerateModel', settings={}):
     from nipype.workflows.dmri.fsl.dti import bedpostx_parallel
-    wf = pe.Workflow(name='GenerateModel')
+    wf = pe.Workflow(name=name)
 
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['subject_id', 'data_dir']), name='inputnode')
@@ -487,7 +487,8 @@ def gen_model(settings={}):
                                 for k in ds_tpl_args.keys()}
     ds.inputs.template_args = ds_tpl_args
 
-    bpx = bedpostx_parallel(params={'n_fibres': 3, 'model': 2})
+    bpx = bedpostx_parallel(compute_all_outputs=False,
+                            params={'n_fibres': 3, 'model': 2})
     wf.connect([
         (inputnode, ds,         [('subject_id', 'subject_id'),
                                  ('data_dir', 'base_directory')]),

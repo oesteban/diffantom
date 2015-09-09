@@ -84,7 +84,7 @@ if __name__ == '__main__':
         plugin_args = {'n_proc': nthreads, 'maxtasksperchild': 4}
 
     if opts.mode == 'model':
-        wf = gen_model(settings=settings)
+        wf = gen_model(opts.name, settings=settings)
     else:
         wf = gen_diffantom(opts.name, settings=settings)
 
