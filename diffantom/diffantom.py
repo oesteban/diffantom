@@ -3,7 +3,7 @@
 # @Author: Oscar Esteban
 # @Date:   2015-06-25 15:46:08
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-09-09 15:45:41
+# @Last Modified time: 2015-09-09 15:50:20
 
 """
 ============================
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     settings = {}
     settings['work_dir'] = opts.work_dir
-    settings['data_dir'] = opts.subjects_dir
+    settings['data_dir'] = op.abspath(opts.subjects_dir)
     settings['subject_id'] = opts.subject
 
     # Setup work_dir

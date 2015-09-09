@@ -3,7 +3,7 @@
 # @Author: oesteban
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
-# @Last Modified time: 2015-09-09 15:44:29
+# @Last Modified time: 2015-09-09 16:21:22
 
 import os
 import os.path as op
@@ -85,7 +85,7 @@ def finf_bundles(name='FINFBundles', settings={}):
         niu.IdentityInterface(fields=out_fields), name='outputnode')
 
     fnames = dict(in_dwi='sim_dwi.nii.gz',
-                  in_grad='grads.txt',
+                  in_scheme='grad.txt',
                   in_5tt='act5tt.nii.gz',
                   aparc='aparc+aseg.nii.gz',
                   parcellation='aparc+aseg.nii.gz',
@@ -104,6 +104,8 @@ def finf_bundles(name='FINFBundles', settings={}):
 
     wf = pe.Workflow(name=name)
     wf.connect([
+        (inputnode, ds,       [('subject_id', 'subject_id'),
+                               ('data_dir', 'base_directory')]),
         (ds, trk, [(f, 'inputnode.' + f) for f in fnames.keys()]),
         (trk, outputnode, [('outputnode.' + f, f) for f in out_fields])
     ])
@@ -312,6 +314,9 @@ def act_workflow(name='Tractography'):
 
     lc = pe.Node(mrt3.LabelConfig(), name='LabelConfig')
     lc.inputs.out_file = 'parcellation.nii.gz'
+    lc.inputs.in_config = op.join(
+        os.getenv('MRTRIX3_HOME', '/home/oesteban/workspace/mrtrix3'),
+        'src/connectome/config/fs_default.txt')
     lc.inputs.lut_fs = op.join(
         os.getenv('FREESURFER_HOME'), 'FreeSurferColorLUT.txt')
 
