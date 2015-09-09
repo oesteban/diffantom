@@ -1,0 +1,8 @@
+{
+	"n_fibres": 3,
+	"model": 2,
+	"fudge": 1,
+	"burn_in": 1000,
+	"n_jumps": 1250,
+	"sample_every": 25
+}

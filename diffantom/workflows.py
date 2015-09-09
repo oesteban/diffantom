@@ -14,14 +14,7 @@ from nipype.interfaces import utility as niu         # utility
 from nipype.interfaces import io as nio
 from nipype.interfaces import fsl                    # fsl
 from nipype.interfaces import freesurfer as fs       # freesurfer
-from nipype.interfaces.dipy import Denoise
 from nipype.interfaces import mrtrix3 as mrt3
-from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
-
-import utils as pu
-from interfaces import (PhantomasSticksSim, LoadSamplingScheme, SigmoidFilter,
-                        TractQuerier)
-from pyacwereg.interfaces import Surf2Vol
 
 
 def gen_diffantom(name='Diffantom', settings={}):
@@ -80,6 +73,9 @@ def gen_diffantom(name='Diffantom', settings={}):
 
 
 def simulate(name='SimDWI'):
+    from nipype.interfaces.dipy import Denoise
+    from interfaces import PhantomasSticksSim, LoadSamplingScheme
+
     in_fields = ['fibers', 'fractions', 'in_5tt', 'in_mask', 'scheme']
 
     inputnode = pe.Node(niu.IdentityInterface(fields=in_fields),
@@ -113,6 +109,9 @@ def simulate(name='SimDWI'):
 
 
 def preprocess_model(name='PrepareModel'):
+    from interfaces import SigmoidFilter
+    import utils as pu
+
     in_fields = ['t1w', 'fibers', 'fractions', 'parcellation', 'in_fa']
     sgm_structures = ['L_Accu', 'R_Accu', 'L_Caud', 'R_Caud',
                       'L_Pall', 'R_Pall', 'L_Puta', 'R_Puta',
@@ -242,6 +241,9 @@ def preprocess_model(name='PrepareModel'):
 
 
 def act_workflow(name='Tractography'):
+    from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
+    import utils as pu
+
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['in_dwi', 'in_scheme', 'in_5tt', 'parcellation', 'aparc',
                 'wmparc']),
@@ -378,6 +380,9 @@ def act_workflow(name='Tractography'):
 
 
 def track_bundle(name='BundleTrack', incl_rois=True):
+    from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
+    import utils as pu
+
     infields = ['in_fod', 'wmparc', 'seed_lbs', 'parcellation',
                 'in_5tt', 'in_scheme', 'roi_excl']
 
@@ -429,6 +434,9 @@ def track_bundle(name='BundleTrack', incl_rois=True):
 
 
 def track_querier(name='TractQuery'):
+    from interfaces import TractQuerier
+    import utils as pu
+
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['in_track', 'in_parc', 'in_qry']), name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(fields=['out_track']),
@@ -450,5 +458,44 @@ def track_querier(name='TractQuery'):
         (inputnode, tq,         [('in_track', 'in_file'),
                                  ('in_qry', 'in_queries')]),
         (tq,        outputnode, [('out_file', 'out_track')])
+    ])
+    return wf
+
+
+def gen_model(name='GenerateModel', settings={}):
+    from nipype.workflows.dmri.fsl.dti import bedpostx_parallel
+    wf = pe.Workflow(name=name)
+
+    inputnode = pe.Node(niu.IdentityInterface(
+        fields=['subject_id', 'data_dir']), name='inputnode')
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=['dyads', 'fsamples']), name='outputnode')
+    inputnode.inputs.subject_id = settings['subject_id']
+    inputnode.inputs.data_dir = settings['data_dir']
+
+    fnames = dict(dwi='dwi.nii.gz',
+                  mask='dwi_brainmask.nii.gz',
+                  bvecs='bvecs',
+                  bvals='bvals')
+
+    ds_tpl_args = {k: [['subject_id', [v]]] for k, v in fnames.iteritems()}
+
+    ds = pe.Node(nio.DataGrabber(
+        infields=['subject_id'], sort_filelist=True, template='*',
+        outfields=ds_tpl_args.keys()), name='DataSource')
+    ds.inputs.field_template = {k: 'subjects/%s/%s'
+                                for k in ds_tpl_args.keys()}
+    ds.inputs.template_args = ds_tpl_args
+
+    bpx = bedpostx_parallel(compute_all_outputs=False,
+                            params={'n_fibres': 3, 'model': 2})
+    wf.connect([
+        (inputnode, ds,         [('subject_id', 'subject_id'),
+                                 ('data_dir', 'base_directory')]),
+        (ds,        bpx,        [(f, 'inputnode.%s' % f)
+                                 for f in fnames.keys()]),
+        (bpx,       outputnode, [('outputnode.dyads', 'dyads'),
+                                 ('outputnode.fsamples', 'fsamples')])
+
     ])
     return wf
