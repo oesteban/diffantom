@@ -94,7 +94,7 @@ Digital simulations are increasingly popular because the complexity of whole-bra
   can not be accounted for with current materials and proposed methodologies to build physical phantoms.
 Early digital phantoms started with simulation of simple geometries
   \citep{basser_in_2000,goessl_fiber_2002,tournier_limitations_2002,leemans_mathematical_2005}
-  to evaluate resolution of fiber crossings.
+  to evaluate the angular resolution as well.
 These tools generally implemented the multi-tensor model \citep{alexander_analysis_2001,tuch_high_2002}
   to simulate fiber crossing, fanning, kissing, etc.
 \cite{close_software_2009} presented the \emph{Numerical Fibre Generator}, a software to simulate
@@ -139,7 +139,7 @@ In \citep{esteban_simulationbased_2014} we addressed this phenomenon and conclud
 \noindent\textbf{\textit{Microstructural model\textcolon}\label{sec:data_model}} %
 The simulation process relies on a microstructural model derived from real data.
 On one hand, the \emph{diffantomizer} workflow requires up to five fraction maps \tmaps{} of
-  free- and hindered- diffusion (see \autoref{fig:figure1}, box A).
+  free- and hindered- diffusion (see \autoref{fig:figure1}, panel A).
 These compartments will be derived from the macroscopic structure of tissues within the brain,
   specified in the following order\footnote{Corresponding to the \emph{5TT format} established
   with the latest version 3.0 of \emph{MRTrix} \citep{tournier_mrtrix_2012}}:
@@ -149,7 +149,7 @@ On the other hand, the restricted-diffusion compartments are specified by up to 
   of three single fiber populations per voxel along with their corresponding direction maps \vmaps{}.
 
 The process to obtain the microstructural model from one dataset of the \gls*{hcp} can be described
-  as follows (see also \autoref{fig:figure1}, box B):
+  as follows (see also \autoref{fig:figure1}, panel B):
 1) The fiber orientation maps $\{\mathbf{V}_i\}$ and their corresponding estimations of volume fraction $\{F'_i\}$ are
   obtained using the ball-and-stick model for multi-shell data of \gls*{bedpostx}
   on the \gls*{dmri} data.
@@ -204,14 +204,15 @@ To illustrate the features of \emph{Diffantom}, the example dataset underwent a 
   \emph{MRTrix} \citep{tournier_mrtrix_2012}.
 \Gls*{csd} was reconstructed using 8$^\text{th}$-order spherical harmonics, and tractography with 1.6\e{6}
   seed points evenly distributed across a dilated mask of the \gls*{wm} tissue.
-\autoref{fig:figure2}, box A1, shows the result of the tractography obtained with such pipeline.
+\autoref{fig:figure2}, panels A1 and A3, show the result of the tractography obtained with such pipeline for
+  the original \emph{Diffantom} and a distorted version.
 Finally, we applied \emph{tract querier} \citep{wassermann_on_2013} on segmenting important fiber bundles such
-  as the \gls*{cst} and the forceps minor (see \autoref{fig:figure2}, box A2).
+  as the \gls*{cst} and the forceps minor (see \autoref{fig:figure2}, panels A2, A4).
 Particularly, due to its location nearby the orbitofrontal lobe, the forceps minor is generally affected by
   susceptibility distortions.
 
 We recommend \emph{Diffantom} as ground-truth in verification and validation frameworks
-  (\autoref{fig:figure2}, box B) for testing pipelines.
+  (\autoref{fig:figure2}, panel B) for testing pipelines.
 \emph{Diffantom} is applicable in the unit testing of algorithms, the integration testing of
   modules in workflows, and the overall system testing.
 Some potential applications follow:
@@ -222,7 +223,7 @@ Some potential applications follow:
   \emph{b-matrix} of the source dataset to any target scheme.
   \item Assessment of sensitivity and robustness to imaging artifacts (noise, \acrlong{pve} and \gls*{csf} contamination,
     susceptibility-derived warping, Eddy-currents-derived distortions, etc.) at unit, integration and systems testing levels.
-  \item Using \emph{Diffantom} as in box B of \autoref{fig:figure2}, it is possible to apply binary classification measures
+  \item Using \emph{Diffantom} as in panel B of \autoref{fig:figure2}, it is possible to apply binary classification measures
     to evaluate the resulting connectivity matrix.
   Considering the connectivity matrix of the \emph{reference Diffantom} and the resulting
     matrix of the \emph{test Diffantom}, the \acrfull*{roc} of the pipeline can be characterized.
@@ -353,8 +354,8 @@ The phantom is simulated from an underlying microstructural model specified with
   associated with the local fiber directions $\{\mathbf{V}_i\}$.
 Please note the piece-wise linear function of the color scale to enable visibility of small volume fractions.
 \textbf{B. The \emph{diffantomizer} workflow, a workflow to generate \emph{diffantoms}}.
-The pipeline to generate phantoms from any \gls*{hcp} dataset is presented in the lower box.
-Once the microstructural model shown in the upper box has been prepared as described in \nameref{sec:data_model},
+The pipeline to generate phantoms from any \gls*{hcp} dataset is presented in the lower panel.
+Once the microstructural model shown in the upper panel has been prepared as described in \nameref{sec:data_model},
   the local orientations are computed and fed into \emph{Phantomas} to finally simulate the signal.
 }
 \end{figure}
@@ -364,13 +365,17 @@ Once the microstructural model shown in the upper box has been prepared as descr
 \includestandalone[width=\linewidth]{figure02}
 \end{center}
 \textbf{\refstepcounter{figure}\label{fig:figure2} Figure \arabic{figure}. }{%
-\textbf{A1. Example dataset.} The tractogram of fibers crossing slice 56 of \emph{Diffantom} as
-  extracted with \emph{MRTrix} is presented, represented over the corresponding slice of the
-  \lowb{} volume.
-\textbf{A2. Segmentation of some fiber bundles in the example dataset.} We used \emph{tract\_querier} to
-  segment the right \gls*{cst} represented with blue streamlines, the left \gls*{cst} (red streamlines),
-  and the forceps minor (green streamlines).
-  The box includes the slice 56 of the \lowb{} and the pial surface is represented with transparency.
+\textbf{A. Example dataset.}
+A1 and A3 show the tractogram of fibers crossing slice 56 of \emph{Diffantom} as
+  extracted with \emph{MRTrix}, represented over the corresponding slice of the
+  \lowb{} volume for the original (A1) and the distorted (A3) phantoms, with a gray
+  frame highlighting the absence of important tracks.
+Panels A2 and A4 show the segmentation of the right \gls*{cst} represented with blue
+  streamlines, the left \gls*{cst} (red streamlines), and the forceps minor (green streamlines)
+  using \emph{tract\_querier}.
+A2 and A4 include the slice 56 of the \lowb{} and the pial surface is represented
+  with transparency.
+In the distorted \emph{Diffantom} (A4) the forceps minor was not detected.
 \textbf{B. Recommended use of \emph{Diffantom}}.
 The phantom is designed to be used as ground-truth information in evaluation frameworks,
   to implement unit test of algorithms, to check integration of processing units within

@@ -536,17 +536,26 @@ FUNCTION {format.note}
 }
 
 FUNCTION {format.title}
-{ title
-  duplicate$ empty$ 'skip$
-    { "t" change.case$ }
-  if$
-  "title" bibinfo.check
+{ title "title" bibinfo.check
 %  duplicate$ empty$ 'skip$
 %    {
 %      select.language
 %    }
 %  if$
 }
+
+% FUNCTION {format.title}
+% { title
+%   duplicate$ empty$ 'skip$
+%     { "t" change.case$ }
+%   if$
+%   "title" bibinfo.check
+% %  duplicate$ empty$ 'skip$
+% %    {
+% %      select.language
+% %    }
+% %  if$
+% }
 FUNCTION {format.full.names}
 {'s :=
  "" 't :=
