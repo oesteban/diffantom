@@ -10,10 +10,8 @@
 %%% In http://www.ctan.org/ you can find the packages and how to install them, if necessary. %%%
 
 \documentclass[english]{frontiers/frontiersSCNS} % for Science, Engineering and Humanities and Social Sciences articles
-%\documentclass{frontiersHLTH} % for Health articles
-%\documentclass{frontiersFPHY} % for Physics and Applied Mathematics and Statistics articles
-
 \usepackage[mode=buildnew]{standalone}
+
 \usepackage{tikz}
 %\setcitestyle{square}
 \usepackage{url,lineno,microtype}
@@ -206,7 +204,7 @@ To illustrate the features of \emph{Diffantom}, the example dataset underwent a 
   seed points evenly distributed across a dilated mask of the \gls*{wm} tissue.
 \autoref{fig:figure2}, panels A1 and A3, show the result of the tractography obtained with such pipeline for
   the original \emph{Diffantom} and a distorted version.
-Finally, we applied \emph{tract querier} \citep{wassermann_on_2013} on segmenting important fiber bundles such
+Finally, we applied \emph{tract querier} \citep{wassermann_on_2013} to segment some fiber bundles such
   as the \gls*{cst} and the forceps minor (see \autoref{fig:figure2}, panels A2, A4).
 Particularly, due to its location nearby the orbitofrontal lobe, the forceps minor is generally affected by
   susceptibility distortions.
@@ -262,14 +260,16 @@ The \emph{diffantomizer} is designed for, but not limited to, use \gls*{hcp} dat
 
 \noindent\textbf{\textit{Conclusion\textcolon}}\label{sec:conclusion} %
 \emph{Diffantom} is a whole-brain digital phantom generated from a dataset from the \acrlong*{hcp}.
-\emph{Diffantom} is presented here to be openly and freely distributed along with The \emph{diffantomizer} workflow
+\emph{Diffantom} is presented here to be openly and freely distributed along with the \emph{diffantomizer} workflow
   to generate new \emph{diffantoms}.
 We encourage the neuroimage community to contribute with their own \emph{diffantoms} and share them openly.
 
 
 \section*{Data Sharing}
-The first \emph{Diffantom} is available under the \gls*{cc0} in {\color{red} (dryad?)}.
-The associated software to ``\emph{diffantomize}'' real \gls*{dmri} data is available at \url{https://github.com/oesteban/diffantom}
+The first \emph{Diffantom} and its distorted version are available under the \gls*{cc0} using the Dryad Digital Repository
+  {\color{red} (reference here when published)}.
+The package is organized following the \gls*{bids} standard.
+The associated software to ``\emph{diffantomize}'' real \gls*{dmri} datasets is available at \url{https://github.com/oesteban/diffantom}
   under an MIT license.
 \emph{Phantomas} is available in \url{https://github.com/ecaruyer/Phantomas} under the revised-BSD license.
 
