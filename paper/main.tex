@@ -11,8 +11,8 @@
 
 \documentclass[english]{frontiers/frontiersSCNS} % for Science, Engineering and Humanities and Social Sciences articles
 \usepackage[mode=buildnew]{standalone}
-
 \usepackage{tikz}
+\usepackage[framemethod=TikZ]{mdframed}
 %\setcitestyle{square}
 \usepackage{url,lineno,microtype}
 \usepackage[toc,nomain,acronym,shortcuts,translate=false]{glossaries}
@@ -65,6 +65,10 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 
 
 \maketitle
+
+\begin{mdframed}[hidealllines=true, backgroundcolor=black!60, roundcorner=10pt]
+{\color{white} Data associated to this Report is available in the Dryad Digital Repository (\doi{10.5061/dryad.4p080}).}
+\end{mdframed}
 
 \linenumbers
 
@@ -267,10 +271,10 @@ We encourage the neuroimage community to contribute with their own \emph{diffant
 
 \section*{Data Sharing}
 The first \emph{Diffantom} and its distorted version are available under the \gls*{cc0} using the Dryad Digital Repository
-  {\color{red} (reference here when published)}.
+  (\doi{10.5061/dryad.4p080}).
 The package is organized following the \gls*{bids} standard.
-The associated software to ``\emph{diffantomize}'' real \gls*{dmri} datasets is available at \url{https://github.com/oesteban/diffantom}
-  under an MIT license.
+The associated software to ``\emph{diffantomize}'' real \gls*{dmri} datasets is available at
+  \url{https://github.com/oesteban/diffantom} under an MIT license.
 \emph{Phantomas} is available in \url{https://github.com/ecaruyer/Phantomas} under the revised-BSD license.
 
 \section*{Disclosure}
