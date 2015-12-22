@@ -10,16 +10,36 @@
 %%% In http://www.ctan.org/ you can find the packages and how to install them, if necessary. %%%
 
 \documentclass[english]{frontiers/frontiersSCNS} % for Science, Engineering and Humanities and Social Sciences articles
+\usepackage{xifthen}
+\newboolean{review}
+\setboolean{review}{true}
+
 \usepackage[mode=buildnew]{standalone}
 \usepackage{tikz}
 \usepackage[framemethod=TikZ]{mdframed}
 %\setcitestyle{square}
-\usepackage{url,lineno,microtype}
+\usepackage{url,microtype}
+\usepackage[right]{lineno}
 \usepackage[toc,nomain,acronym,shortcuts,translate=false]{glossaries}
 \usepackage[colorlinks=true,linkcolor=black, citecolor=black!80, urlcolor=black!80]{hyperref}
 \usepackage{doi}
 \usepackage[onehalfspacing]{setspace}
 
+
+\ifthenelse{\boolean{review}}
+{
+  \usepackage[colorinlistoftodos, textwidth=1.4cm]{todonotes}
+  \setlength{\marginparwidth}{1.6cm}
+  \reversemarginpar
+  \newcommand{\revcomment}[2][]{\ifthenelse{\equal{#1}{}}{}{\todo[size=\tiny]{#1}}%
+  \begingroup \color{blue!70} #2\endgroup}
+}
+{
+  \newcommand{\todo}[2][]{}
+  \newcommand{\revcomment}[2][]{#2}
+}
+
+% \usepackage{showframe}
 \def\keyFont{\fontsize{7}{9}\helveticabold }
 \def\firstAuthorLast{Esteban {et~al.}} %use et al only if is more than 1 author
 \def\Authors{Oscar Esteban\,$^{1,2,*}$, Emmanuel Caruyer\,$^{3}$, Alessandro Daducci\,$^{4}$, Meritxell Bach-Cuadra\,$^{4,5}$,%
@@ -50,8 +70,6 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 \newcommand{\tmaps}{\ensuremath{\{T_j \,|\, j \in \{1,\ldots,5\}\}}}
 \newcommand{\diffunits}{\ensuremath{\text{mm}^2\text{s}^{\text{-1}}}}
 
-\newcommand*\glslines[2][]{\glslink[#1]{#2}{\glsdisp{#2}{\acrlong{#2} --\glsentryshort{#2}--}}}
-
 \begin{document}
 
 \onecolumn
@@ -68,12 +86,28 @@ ${^5}$Dept. of Radiology, CIBM, University Hospital Center (CHUV) and University
 
 
 \maketitle
-
-\begin{mdframed}[hidealllines=true, backgroundcolor=black!60, roundcorner=10pt]
-{\color{white} Data associated to this Report is available in the Dryad Digital Repository (\doi{10.5061/dryad.4p080}).}
-\end{mdframed}
-
 \linenumbers
+
+% \begin{mdframed}[hidealllines=true, backgroundcolor=black!5, roundcorner=5pt]
+\section*{Diffantom in brief}
+\revcomment[Rev.\#2\\Q.10]{%
+\diffantom{} is a whole-brain \gls*{dmri} phantom publicly available
+  through the Dryad Digital Repository (\doi{10.5061/dryad.4p080}).
+The dataset contains two single-shell \gls*{dmri} images, along with the corresponding gradient
+  information, packed following the \gls*{bids}.
+The released dataset is designed for the evaluation of the impact of susceptibility distortions
+  and benchmarking existing correction methods.
+}%
+
+\revcomment[Rev.\#1\\Q14.1]{%
+In this Data Report we also release the software instruments involved in generating \emph{diffantoms},
+  so that researchers are able to generate new phantoms derived from different subjects,
+  and apply these data in other applications like investigating diffusion sampling
+  schemes, the assessment of \gls*{dmri} processing methods, the simulation of pathologies
+  and imaging artifacts, etc.
+In summary, \diffantom{} is intended for unit testing of novel methods, cross-comparison of established methods,
+  and integration testing of partial or complete processing flows to extract connectivity networks
+  from \gls{dmri}.}
 
 \section*{Introduction}
 Fiber tracking on \gls*{dmri} data has become an important tool for the \textit{in-vivo} investigation
@@ -233,10 +267,20 @@ Some potential applications follow:
   Considering the connectivity matrix of the \emph{reference Diffantom} and the resulting
     matrix of the \emph{test Diffantom}, the \acrfull*{roc} of the pipeline can be characterized.
   \item Simulation of pathological brains by altering the microstructural
-    model accordingly (e.g. as tumors were simulated in \cite{kaus_simulation_2000}).
+    model accordingly \cite[e.g. as tumors were simulated in][]{kaus_simulation_2000}.
 \end{itemize}
 In order to exemplify one of these intended uses, we also release a \diffantom{} including the susceptibility-derived
   distortion in simulation.
+\revcomment[Rev.\#1\\Q14.2]{%
+These two images belong to a broader dataset, automatically generated, used in a study to quantify
+  the impact of susceptibility distortions and correction methods on the connectome extraction
+  \cite[Chapter 5]{esteban_image_2015}.
+In this study, three widely-used correction methods are compared in a reference framework of
+  several \emph{Diffantoms} with realistic and controlled distortions.
+This context provides a useful resource to characterize the impact of susceptibility distortion
+  on the final connectivity network and allows the evaluation of the different correction
+  methodologies available.%
+}
 
 \section*{Discussion and conclusion}
 \noindent\textbf{\textit{Discussion\textcolon}}\label{sec:discussion} %
