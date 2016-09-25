@@ -478,7 +478,7 @@
   \parbox[c]{15pc}{%
     \helvetica
     \hfil
-    \flushleft  \includegraphics[width=15pc,angle=0]{./logo1.jpg}
+    \flushleft  \includegraphics[width=15pc,angle=0]{frontiers/logo1.jpg}
 
 
 }}
@@ -492,7 +492,7 @@
     \vspace{4.5\p@}
     {\helveticabold\fontsize{12}{15}\selectfont\raggedright \@author \par}%
         \vspace{4\p@}
-  {\helvetica\fontsize{12}{10}\selectfont\raggedright {*Correspondence:\\ }\@correspondance \corrAuthor \\ \corrEmail \par}
+  {\helvetica\fontsize{12}{10}\selectfont\raggedright {*Correspondence: }\@correspondance \corrAuthor \,(\corrEmail) \par}
         \vspace{4\p@}
     {\helvetica\fontsize{12}{12}\selectfont\raggedright\@extraAuth \par}%
     \vspace{8\p@}
