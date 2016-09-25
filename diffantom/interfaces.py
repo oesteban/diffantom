@@ -4,7 +4,7 @@
 # @Date:   2015-06-23 12:29:58
 # @Last Modified by:   oesteban
 # @Last Modified time: 2015-07-13 11:47:13
-
+from __future__ import absolute_import
 import os
 import os.path as op
 import glob
@@ -21,7 +21,7 @@ from nipype.interfaces.base import (TraitedSpec, File, InputMultiPath,
 from nipype.utils.filemanip import split_filename, fname_presuffix
 from nipype import logging
 
-from diffantom.utils import sigmoid_filter
+from .utils import sigmoid_filter
 
 iflogger = logging.getLogger('interface')
 

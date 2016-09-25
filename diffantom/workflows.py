@@ -4,7 +4,7 @@
 # @Date:   2015-06-23 12:32:07
 # @Last Modified by:   Oscar Esteban
 # @Last Modified time: 2015-09-09 16:21:22
-
+from __future__ import absolute_import
 import os
 import os.path as op
 import numpy as np
@@ -114,7 +114,7 @@ def finf_bundles(name='FINFBundles', settings={}):
 
 def simulate(name='SimDWI'):
     from nipype.interfaces.dipy import Denoise
-    from diffantom.interfaces import PhantomasSticksSim, LoadSamplingScheme
+    from .interfaces import PhantomasSticksSim, LoadSamplingScheme
 
     in_fields = ['fibers', 'fractions', 'in_5tt', 'in_mask', 'scheme']
 
@@ -149,7 +149,7 @@ def simulate(name='SimDWI'):
 
 
 def preprocess_model(name='PrepareModel'):
-    from diffantom.interfaces import SigmoidFilter
+    from .interfaces import SigmoidFilter
     import diffantom.utils as pu
 
     in_fields = ['t1w', 'fibers', 'fractions', 'parcellation', 'in_fa']
@@ -477,7 +477,7 @@ def track_bundle(name='BundleTrack', incl_rois=True):
 
 
 def track_querier(name='TractQuery'):
-    from diffantom.interfaces import TractQuerier
+    from .interfaces import TractQuerier
     import diffantom.utils as pu
 
     inputnode = pe.Node(niu.IdentityInterface(
