@@ -44,7 +44,7 @@ def main():
         url=ldict['URL'],
         download_url=ldict['DOWNLOAD_URL'],
         classifiers=ldict['CLASSIFIERS'],
-        packages=find_packages(exclude=['build', 'docs', 'paper']),
+        packages=find_packages(exclude=['build', 'dist', 'docs', 'paper']),
         zip_safe=False,
         # Dependencies handling
         setup_requires=[],

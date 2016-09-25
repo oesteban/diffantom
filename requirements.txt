@@ -1,0 +1,6 @@
+numpy
+nibabel
+nipy
+scipy
+-e git+https://github.com/oesteban/phantomas.git#egg=phantomas
+-e git+https://github.com/oesteban/nipype.git#egg=nipype
