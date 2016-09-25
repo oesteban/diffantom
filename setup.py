@@ -52,7 +52,7 @@ def main():
         dependency_links=ldict['LINKS_REQUIRES'],
         tests_require=ldict['TESTS_REQUIRES'],
         extras_require=ldict['EXTRA_REQUIRES'],
-        package_data={PACKAGE_NAME: ['data/*.txt',]},
+        package_data={PACKAGE_NAME: ['data/bedpostx.json',]},
         entry_points={
             'console_scripts': [
                 'diffantom=diffantom.scripts.diffantom:main'
