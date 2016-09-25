@@ -1,0 +1,123 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is just an example/guide for you to refer to when producing your supplementary material for your Frontiers article.                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Version 2.1 Generated 2015/05/22 %%%
+%%% You will need to have the following packages installed: datetime, fmtcount, etoolbox, fcprefix, which are normally inlcuded in WinEdt. %%%
+%%% In http://www.ctan.org/ you can find the packages and how to install them, if necessary. %%%
+
+\documentclass{frontiers/frontiers_suppmat} % for all articles
+\usepackage[toc,nomain,acronym,shortcuts,translate=false]{glossaries}
+\usepackage{url,microtype}
+\usepackage[colorlinks=true,linkcolor=black, citecolor=black!80, urlcolor=black!80]{hyperref}
+\usepackage{doi}
+\usepackage[onehalfspacing]{setspace}
+
+% Leave a blank line between paragraphs in stead of using \\
+
+
+\def\keyFont{\fontsize{8}{11}\helveticabold }
+
+\def\firstAuthorLast{Esteban {et~al.}} %use et al only if is more than 1 author
+\def\Authors{Oscar Esteban*, Emmanuel Caruyer, Alessandro Daducci, Meritxell Bach-Cuadra,%
+Mar\'ia-J. Ledesma-Carbayo and Andres Santos}
+
+% The Corresponding Author should be marked with an asterisk
+% Provide the exact contact address (this time including street name and city zip code) and email of the corresponding author
+\def\corrAuthor{Oscar Esteban}
+\def\corrAddress{Biomedical Image Technologies (BIT), ETSI Telecomunicaci\'on, Av. Complutense 30, C203, E28040 Madrid, Spain}
+\def\corrEmail{phd@oscaresteban.es}
+
+
+\input{abbreviations.tex}
+
+\providecommand{\diffantom}{\emph{Diffantom}}
+\providecommand{\Diffantom}{\emph{Diffantom}}
+\newcommand{\lowb}{\textit{b0}}
+\newcommand{\e}[1]{\ensuremath{\;\cdot\,\text{10}^\text{#1}}}
+\newcommand{\vmaps}{\ensuremath{\{\mathbf{V}_i \,|\, i \in \{1,2,3\}\}}}
+\newcommand{\fmaps}{\ensuremath{\{F_i \,|\, i \in \{1,2,3\}\}}}
+\newcommand{\tmaps}{\ensuremath{\{T_j \,|\, j \in \{1,\ldots,5\}\}}}
+\newcommand{\diffunits}{\ensuremath{\text{mm}^2\text{s}^{\text{-1}}}}
+
+
+\begin{document}
+\onecolumn
+\firstpage{1}
+
+\title[Supplementary Material]{\helvetica{Supplementary Material to: Diffantom}} %Please insert the title of your article here
+
+\author[\firstAuthorLast ]{\Authors} %This field will be automatically populated
+\correspondance{} %This field will be automatically populated
+
+\extraAuth{}% If there are more than 1 corresponding author, comment this line and uncomment the next one.
+%\extraAuth{Corresponding Author2: email2@uni2.edu}
+
+\maketitle
+
+\section*{Appendix}\label{sec:appendix}
+Let $\{T'_j\}$ be the set of original fractions maps obtained with \path{act_anat_prepare_fsl}, a
+  tool in \emph{MRTrix} that combines \gls*{fast} and \gls*{first}
+  to generate the macrostructural 5TT map.
+FA denotes the \gls*{fa} map obtained from the original \gls*{dmri} data: the local fiber orientation maps
+  $\{\mathbf{V}_i\}$ with their estimated volume fractions $\{F'_i\}$ calculated with \gls*{bedpostx}.
+The final $\{T_j\}$ maps of isotropic fractions are computed as follows:
+  \begin{align*}
+  T_1 &= (1.0-f_{cgm}) \cdot T'_1 \\
+  T_2 &= (1.0-f_{dgm}) \cdot T'_2 \\
+  T_3 &= (1.0-f_{wm}) \cdot T'_3 \\
+  T_4 &= T'_4 \\
+  T_5 &= 0.0
+  \end{align*}
+where $f_{\{cgm, dgm, wm\}}$ are the fractions of restricted diffusion for each tissue.
+\cite{sepehrband_brain_2015} found out that the fiber fraction ranges across the corpus
+  callosum from the 70$\pm$8\% in its body to an upper bound of 80$\pm$11\% in the splenium.
+Therefore, we choose $f_{wm} =$ 80\% as default fraction of restricted diffusion in the
+  \gls*{wm}.
+To our knowledge, restricted diffusion fractions have been studied only for \gls*{wm}.
+Therefore, we set $f_{cgm} =$ 25\% and $f_{dgm} =$ 50\% as they yield plausible \gls*{fa}
+  and \gls*{adc} maps, assessed visually.
+The final $\{F_i\}$ maps are computed as follows:
+\begin{align*}
+F_1 &= f_{wm} \cdot T_2 \cdot \text{FA} + w_{f1} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2) \\
+F_2 &= f_{wm} \cdot T_2 - (F_1 + F_3) + w_{f2} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2) \\
+F_3 &= f_{wm} \cdot F'_3 + w_{f3} (f_{cgm} \cdot T_1 + f_{dgm} \cdot T_2)
+\end{align*}
+where $w_{\{f1, f2, f3\}}$ are the contributions of the \gls*{gm} compartments to each fiber population.
+By default: $w_{f1} = $ 48\%, $w_{f2} = $ 37\%, $w_{f3} = $ 15\%.
+Finally, the resulting maps are normalized to fulfill $\sum_j T_j + \sum_i F_i = 1.0$.
+
+\newpage
+\bibliographystyle{frontiers/frontiersinSCNS_ENG_HUMS}
+%\bibliographystyle{frontiersinHLTH&FPHY} % for Health and Physics articles
+\bibliography{Remote}
+
+\end{document}
+
+
+% \documentclass[english]{frontiers/frontiers_suppmat} % for Science, Engineering and Humanities and Social Sciences articles
+% \usepackage{xifthen}
+% \newboolean{review}
+% \setboolean{review}{true}
+
+% \usepackage[mode=buildnew]{standalone}
+% \usepackage{tikz}
+% \usepackage[framemethod=TikZ]{mdframed}
+% %\setcitestyle{square}
+% \usepackage{url,microtype}
+% \usepackage[right]{lineno}
+% \usepackage[toc,nomain,acronym,shortcuts,translate=false]{glossaries}
+% \usepackage[colorlinks=true,linkcolor=black, citecolor=black!80, urlcolor=black!80]{hyperref}
+% \usepackage{doi}
+% \usepackage[onehalfspacing]{setspace}
+
+% \def\keyFont{\fontsize{7}{9}\helveticabold }
+
+
+% \begin{document}
+% \firstpage{1}
+% \title[Diffantom]{Diffantom: whole-brain diffusion MRI phantoms derived from real datasets of the \acrlong{hcp}}
+% \maketitle
+
+
+% \end{document}

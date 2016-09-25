@@ -1,6 +1,6 @@
-\newcommand\classname{frontiers_suppmat} %this file is based in bioninfo.cls
-\newcommand\lastmodifieddate{2015/01/08}
-\newcommand\versionnumber{2.0}
+\newcommand\classname{frontiersSCNS} %this file is based in bioninfo.cls
+\newcommand\lastmodifieddate{2015/05/22}
+\newcommand\versionnumber{2.4}
 
 % For printing crop marks
 \newif\if@cropmarkson \@cropmarksontrue
@@ -28,7 +28,9 @@
 \ProcessOptions
 
 % Load all necessary packages
-\RequirePackage{inputenc,crop,graphicx,amsmath,array,color,amssymb,flushend,stfloats,amsthm,chngpage,times,datetime,parskip,epstopdf}
+\usepackage[utf8]{inputenc}
+\usepackage[fleqn]{amsmath}
+\RequirePackage{crop,graphicx,array,color,amssymb,flushend,stfloats,amsthm,chngpage,times,datetime,parskip,epstopdf}
 \def\helvetica{\fontfamily{phv}\selectfont}
 \def\helveticaitalic{\fontfamily{phv}\itshape\selectfont}
 \def\helveticabold{\fontfamily{phv}\bfseries\selectfont}
@@ -228,10 +230,11 @@
 \def\ps@headings
   {%
   \def\@oddfoot{\vbox to 12.5\p@{\rule{\textwidth}{0.5\p@}\vss
-        \hbox to \textwidth{\helveticabold\small {Frontiers}\hfill \thepage}%
+        \hbox to \textwidth{\helveticabold\small {Frontiers in Neuroinformatics}\hfill \thepage}%
         }}%
   \def\@evenfoot{\vbox to 12.5\p@{\rule{\textwidth}{0.5\p@}\vss
-        \hbox to \textwidth{\helvetica\small {}\hfill\helveticabold\color{black}\thepage}%
+%        \hbox to \textwidth{\helvetica\small {\color{red}This is a provisional file, not the final typeset article}\hfill\helveticabold\color{black}\thepage}%
+        \hbox to \textwidth{\helvetica\small {\color{red} This is a pre-print for archiving, in submission to Front. Neuroinf.}\hfill\helveticabold\color{black}\thepage}%
         }}%
   \def\@evenhead{\vbox{\hbox to \textwidth{\fontsize{11}{10}\selectfont
         \helveticabold{\fontshape{it}\selectfont
@@ -403,7 +406,7 @@
 \def\history#1{\global\def\@history{#1}}
 \def\correspondance#1{\global\def\@correspondance{#1}}
 \def\extraAuth#1{\global\def\@extraAuth{#1}}
-
+\def\address#1{\global\def\@address{#1}}
 
 
 \def\date#1{\gdef\@date{#1}}
@@ -492,7 +495,9 @@
     \vspace{4.5\p@}
     {\helveticabold\fontsize{12}{15}\selectfont\raggedright \@author \par}%
         \vspace{4\p@}
-  {\helvetica\fontsize{12}{10}\selectfont\raggedright {*Correspondence: }\@correspondance \corrAuthor \,(\corrEmail) \par}
+    {\helvetica\fontsize{9}{9}\selectfont\raggedright\slshape\@address \Address \\ \par}%
+      \vspace{6\p@}
+  {\helvetica\fontsize{9}{8}\selectfont\raggedright {Corresponding Author*:\\ }\@correspondance \corrAuthor \\ \corrAddress, \corrEmail \par}
         \vspace{4\p@}
     {\helvetica\fontsize{12}{12}\selectfont\raggedright\@extraAuth \par}%
     \vspace{8\p@}
@@ -520,6 +525,8 @@
 \setcounter{secnumdepth}{5}
 
 \renewcommand{\@seccntformat}[1]{\csname the#1\endcsname\quad}
+\def\textcolon{\text{\rm :}}
+
 
 \def\section{%
   \@startsection{section}{1}{\z@}
@@ -533,20 +540,24 @@
 
 \def\subsubsection{%
   \@startsection{subsubsection}{3}{\z@}
-  {1\p@ plus -1\p@}{1\p@}
+  {1\p@ plus -1\p@}%
+  {1\p@}%
   {\reset@font\raggedright\mathversion{bold}\helvetica\fontsize{11.5}{12}}}
 
- \def\paragraph{%
-   \@startsection{paragraph}{4}{\z@}
-  {1\p@ plus -1\p@}{1\p@}
-   {\reset@font\itshape\helveticabold\fontsize{11.5}{12}}}
+\def\paragraph{%
+  \@startsection{paragraph}{4}{\z@}%
+  {1\p@ plus -1\p@}%
+  {0\p@}%
+  {\reset@font\itshape\helveticabold}}
+  %{\reset@font\itshape\helveticabold\fontsize{11.5}{12}}}
 
- \def\subparagraph{%
-   \@startsection{subparagraph}{5}{\z@}
-  {1\p@ plus -1\p@}{1\p@}
-   {\reset@font\itshape\helvetica\fontsize{11.5}{12}}}
 
-\def\textcolon{\text{\rm :}}
+\def\subparagraph{%
+  \@startsection{subparagraph}{5}{\z@}
+ {1\p@ plus -1\p@}{1\p@}
+  {\reset@font\itshape\helvetica\fontsize{11.5}{12}}}
+
+
 
 % ********************
 % Figures and tables *
