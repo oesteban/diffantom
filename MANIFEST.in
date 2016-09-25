@@ -1,0 +1,12 @@
+#documentation
+# recursive-include docs/_build/html *
+
+#data
+recursive-include diffantom/data *
+
+#example files
+include diffantom/EXAMPLES.rst
+
+#Misc
+include CHANGES
+include LICENSE
