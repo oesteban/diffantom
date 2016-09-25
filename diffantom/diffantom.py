@@ -4,13 +4,12 @@
 # @Date:   2015-06-25 15:46:08
 # @Last Modified by:   Oscar Esteban
 # @Last Modified time: 2015-09-09 15:50:20
-
 """
 ============================
 The Diffantom software layer
 ============================
 """
-
+from __future__ import absolute_import
 
 def main():
     from argparse import ArgumentParser
@@ -20,7 +19,7 @@ def main():
     import os.path as op
     import sys
     from shutil import copyfileobj
-    from diffantom.workflows import gen_diffantom, gen_model, finf_bundles
+    from .workflows import gen_diffantom, gen_model, finf_bundles
 
     parser = ArgumentParser(description='Preprocessing dMRI routine',
                             formatter_class=RawTextHelpFormatter)
