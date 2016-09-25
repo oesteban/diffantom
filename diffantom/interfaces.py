@@ -19,9 +19,10 @@ from nipype.interfaces.base import (TraitedSpec, File, InputMultiPath,
                                     BaseInterface, BaseInterfaceInputSpec,
                                     traits)
 from nipype.utils.filemanip import split_filename, fname_presuffix
-from utils import sigmoid_filter
-
 from nipype import logging
+
+from diffantom.utils import sigmoid_filter
+
 iflogger = logging.getLogger('interface')
 
 

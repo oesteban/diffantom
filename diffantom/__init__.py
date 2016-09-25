@@ -5,4 +5,5 @@
 # @Last Modified by:   Oscar Esteban
 # @Last Modified time: 2015-06-23 13:05:13
 
-from interfaces import PhantomasSticksSim, LoadSamplingScheme
+from diffantom.interfaces import PhantomasSticksSim, LoadSamplingScheme
+from diffantom.workflows import gen_diffantom, gen_model, finf_bundles

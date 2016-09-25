@@ -114,7 +114,7 @@ def finf_bundles(name='FINFBundles', settings={}):
 
 def simulate(name='SimDWI'):
     from nipype.interfaces.dipy import Denoise
-    from interfaces import PhantomasSticksSim, LoadSamplingScheme
+    from diffantom.interfaces import PhantomasSticksSim, LoadSamplingScheme
 
     in_fields = ['fibers', 'fractions', 'in_5tt', 'in_mask', 'scheme']
 
@@ -149,8 +149,8 @@ def simulate(name='SimDWI'):
 
 
 def preprocess_model(name='PrepareModel'):
-    from interfaces import SigmoidFilter
-    import utils as pu
+    from diffantom.interfaces import SigmoidFilter
+    import diffantom.utils as pu
 
     in_fields = ['t1w', 'fibers', 'fractions', 'parcellation', 'in_fa']
     sgm_structures = ['L_Accu', 'R_Accu', 'L_Caud', 'R_Caud',
@@ -282,7 +282,7 @@ def preprocess_model(name='PrepareModel'):
 
 def act_workflow(name='Tractography'):
     from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
-    import utils as pu
+    import diffantom.utils as pu
 
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['in_dwi', 'in_scheme', 'in_5tt', 'parcellation', 'aparc',
@@ -424,7 +424,7 @@ def act_workflow(name='Tractography'):
 
 def track_bundle(name='BundleTrack', incl_rois=True):
     from nipype.interfaces.mrtrix import MRTrix2TrackVis as TCK2TRK
-    import utils as pu
+    import diffantom.utils as pu
 
     infields = ['in_fod', 'wmparc', 'seed_lbs', 'parcellation',
                 'in_5tt', 'in_scheme', 'roi_excl']
@@ -477,8 +477,8 @@ def track_bundle(name='BundleTrack', incl_rois=True):
 
 
 def track_querier(name='TractQuery'):
-    from interfaces import TractQuerier
-    import utils as pu
+    from diffantom.interfaces import TractQuerier
+    import diffantom.utils as pu
 
     inputnode = pe.Node(niu.IdentityInterface(
         fields=['in_track', 'in_parc', 'in_qry']), name='inputnode')

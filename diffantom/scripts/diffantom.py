@@ -10,30 +10,17 @@
 The Diffantom software layer
 ============================
 """
-import os
-import os.path as op
-import sys
 
 
-__author__ = "Oscar Esteban"
-__copyright__ = "Copyright 2015, Biomedical Image Technologies (BIT), \
-                 Universidad Politécnica de Madrid"
-__credits__ = "Oscar Esteban"
-__license__ = "MIT"
-__version__ = "0.1"
-__maintainer__ = "Oscar Esteban"
-__email__ = "code@oscaresteban.es"
-__status__ = "Prototype"
-
-
-if __name__ == '__main__':
+def main():
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from workflows import gen_diffantom, gen_model, finf_bundles
     import glob
     import os
     import os.path as op
+    import sys
     from shutil import copyfileobj
+    from diffantom.workflows import gen_diffantom, gen_model, finf_bundles
 
     parser = ArgumentParser(description='Preprocessing dMRI routine',
                             formatter_class=RawTextHelpFormatter)
@@ -93,3 +80,6 @@ if __name__ == '__main__':
     wf.base_dir = settings['work_dir']
     # wf.write_graph(format='pdf')
     wf.run(plugin=plugin, plugin_args=plugin_args)
+
+if __name__ == '__main__':
+    main()
