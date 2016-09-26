@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from datetime import datetime
 
 __packagename__ = 'diffantom'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __author__ = 'Oscar Esteban'
 __affiliation__ = 'Psychology Department, Stanford University'
 __credits__ = ['Oscar Esteban']

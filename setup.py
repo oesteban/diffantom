@@ -55,7 +55,8 @@ def main():
         package_data={PACKAGE_NAME: ['data/bedpostx.json',]},
         entry_points={
             'console_scripts': [
-                'diffantom=diffantom.diffantom:main'
+                'diffantom=diffantom.scripts.diffantom:main',
+                'sticks2dwis=diffantom.scripts.sticks2dwis:main'
 
             ]
         }
