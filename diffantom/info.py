@@ -13,7 +13,7 @@ __version__ = '1.0.0'
 __author__ = 'Oscar Esteban'
 __affiliation__ = 'Psychology Department, Stanford University'
 __credits__ = ['Oscar Esteban']
-__license__ = '3-clause BSD'
+__license__ = 'MIT License'
 __maintainer__ = 'Oscar Esteban'
 __email__ = 'code@oscaresteban.es'
 __status__ = 'Prototype'
@@ -44,7 +44,7 @@ CLASSIFIERS = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Science/Research',
     'Topic :: Scientific/Engineering :: Image Recognition',
-    'License :: OSI Approved :: BSD License',
+    'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 2.7',
 ]
 
